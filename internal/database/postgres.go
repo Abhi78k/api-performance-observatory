@@ -9,6 +9,8 @@ import (
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 func ConnectDB() (*gorm.DB, error) {
 	godotenv.Load()
 
@@ -22,5 +24,12 @@ func ConnectDB() (*gorm.DB, error) {
 		os.Getenv("DB_SSLMODE"),
 	)
 
-	return gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	DB = db
+
+	return db, nil
 }

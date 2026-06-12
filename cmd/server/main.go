@@ -3,12 +3,19 @@ package main
 import (
 	"fmt"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/auth"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
+	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	token, err := auth.GenerateToken(1)
+
+	fmt.Println(token)
+	fmt.Println(err)
+
 	db, err := database.ConnectDB()
 	if err != nil {
 		panic(err)
@@ -31,6 +38,8 @@ func main() {
 		})
 	})
 
+	r.POST("/auth/register", handlers.Register)
+	r.POST("/auth/login", handlers.Login)
 	r.Run(":8080")
 
 }

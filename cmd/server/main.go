@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
+	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/gin-gonic/gin"
 )
@@ -22,6 +23,16 @@ func main() {
 		&models.User{},
 		&models.Service{},
 	)
+
+	serviceHandler := handlers.ServiceHandler{
+		DB: db,
+	}
+
+	r.POST("/services", serviceHandler.CreateService)
+	r.GET("/services", serviceHandler.GetServices)
+	r.GET("/services/:id", serviceHandler.GetService)
+	r.PUT("/services/:id", serviceHandler.UpdateService)
+	r.DELETE("/services/:id", serviceHandler.DeleteService)
 
 	r := gin.Default()
 

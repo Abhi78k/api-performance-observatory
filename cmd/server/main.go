@@ -1,7 +1,41 @@
+// package main
+
+// import ("fmt")
+
+// func main() {
+// 	fmt.Println("API Observatory Started")
+// }
+
 package main
 
-import ("fmt")
+import (
+	"fmt"
+
+	"github.com/Abhi78k/api-performance-observatory/internal/database"
+	"github.com/Abhi78k/api-performance-observatory/internal/models"
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	db, err := database.ConnectDB()
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Database connected!")
+
+	_ = db
+
+	db.AutoMigrate(&models.User{})
+
+	r := gin.Default()
+
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "API Observatory",
+		})
+	})
+
+	r.Run(":8080")
+
 }

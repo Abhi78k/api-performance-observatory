@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
+	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +25,8 @@ func main() {
 	fmt.Println("Database connected!")
 
 	_ = db
+
+	db.AutoMigrate(&models.User{})
 
 	r := gin.Default()
 

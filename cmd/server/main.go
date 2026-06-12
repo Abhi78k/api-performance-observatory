@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 
-	"github.com/Abhi78k/api-performance-observatory/internal/auth"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
 	"github.com/Abhi78k/api-performance-observatory/internal/middleware"
@@ -12,11 +11,6 @@ import (
 )
 
 func main() {
-	token, err := auth.GenerateToken(1)
-
-	fmt.Println(token)
-	fmt.Println(err)
-
 	db, err := database.ConnectDB()
 	if err != nil {
 		panic(err)
@@ -48,8 +42,15 @@ func main() {
 		})
 	})
 
-	protected := r.Group("/")
+	authRoutes := r.Group("/auth")
+	authRoutes.POST("/register", handlers.Register)
+	authRoutes.POST("/login", handlers.Login)
+
+	protected := r.Group("/auth")
 	protected.Use(middleware.AuthMiddleware())
+	protected.GET("/me", handlers.Me)
+	protected.POST("/refresh", handlers.Refresh)
+	protected.POST("/logout", handlers.Logout)
 
 	protected.GET("/profile", func(c *gin.Context) {
 		userID, _ := c.Get("userID")
@@ -59,8 +60,6 @@ func main() {
 		})
 	})
 
-	r.POST("/auth/register", handlers.Register)
-	r.POST("/auth/login", handlers.Login)
 	r.Run(":8080")
 
 }

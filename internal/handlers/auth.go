@@ -135,3 +135,65 @@ func Login(c *gin.Context) {
 		"token": token,
 	})
 }
+
+func Me(c *gin.Context) {
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(401, gin.H{
+			"error": "user not found in context.",
+		})
+		return
+	}
+
+	uid := userID.(uint)
+
+	var user models.User
+
+	result := database.DB.First(&user, uid)
+
+	if result.Error != nil {
+		c.JSON(404, gin.H{
+			"error": "invalid user.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"id":    user.ID,
+		"email": user.Email,
+	})
+}
+
+func Refresh(c *gin.Context) {
+
+	userID, exists := c.Get("userID")
+
+	if !exists {
+		c.JSON(401, gin.H{
+			"error": "user not found.",
+		})
+		return
+	}
+
+	token, err := auth.GenerateToken(
+		userID.(uint),
+	)
+
+	if err != nil {
+		c.JSON(401, gin.H{
+			"error": "failed to generate token.",
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"token": token,
+	})
+}
+
+func Logout(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"message": "logged out successfully.",
+	})
+}

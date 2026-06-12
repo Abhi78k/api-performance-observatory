@@ -7,6 +7,18 @@ import (
 	"gorm.io/gorm"
 )
 
+type CreateServiceRequest struct {
+	Name           string `json:"name"`
+	URL            string `json:"url"`
+	ExpectedStatus int    `json:"expected_status"`
+}
+
+type UpdateServiceRequest struct {
+	Name           string `json:"name"`
+	URL            string `json:"url"`
+	ExpectedStatus int    `json:"expected_status"`
+}
+
 type ServiceHandler struct {
 	DB *gorm.DB
 }

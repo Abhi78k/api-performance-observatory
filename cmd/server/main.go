@@ -1,11 +1,3 @@
-// package main
-
-// import ("fmt")
-
-// func main() {
-// 	fmt.Println("API Observatory Started")
-// }
-
 package main
 
 import (
@@ -26,7 +18,10 @@ func main() {
 
 	_ = db
 
-	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(
+		&models.User{},
+		&models.Service{},
+	)
 
 	r := gin.Default()
 

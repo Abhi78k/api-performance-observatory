@@ -30,6 +30,16 @@ func main() {
 		&models.Service{},
 	)
 
+	serviceHandler := handlers.ServiceHandler{
+		DB: db,
+	}
+
+	r.POST("/services", serviceHandler.CreateService)
+	r.GET("/services", serviceHandler.GetServices)
+	r.GET("/services/:id", serviceHandler.GetService)
+	r.PUT("/services/:id", serviceHandler.UpdateService)
+	r.DELETE("/services/:id", serviceHandler.DeleteService)
+
 	r := gin.Default()
 
 	r.GET("/", func(c *gin.Context) {

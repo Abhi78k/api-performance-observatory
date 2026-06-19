@@ -4,10 +4,11 @@ import (
 	"strings"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/auth"
+	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/gin-gonic/gin"
 )
 
-func AuthMiddleware() gin.HandlerFunc {
+func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// retrieve the header from jwt token
 		header := c.GetHeader("Authorization")
@@ -36,7 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// extract the token string
 		tokenString := parts[1]
 
-		token, err := auth.ValidateToken(tokenString)
+		token, err := auth.ValidateToken(cfg, tokenString)
 
 		// if invalid
 		if err != nil {
@@ -59,7 +60,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// set the user id
-		c.Set("userID", claims.UserID)
+		c.Set("UserID", claims.UserID)
 
 		c.Next()
 	}

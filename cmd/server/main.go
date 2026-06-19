@@ -6,10 +6,10 @@ import (
 	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
-	"github.com/Abhi78k/api-performance-observatory/internal/middleware"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
-
-	"github.com/gin-gonic/gin"
+	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
+	"github.com/Abhi78k/api-performance-observatory/internal/routes"
+	"github.com/Abhi78k/api-performance-observatory/internal/services"
 )
 
 func main() {
@@ -36,65 +36,77 @@ func main() {
 		log.Fatal("Migration failed:", err)
 	}
 
-	// Handlers
-	endpointHandler := handlers.EndpointHandler{
-		DB: db,
-	}
+	authRepo := repositories.NewUserRepository(db)
 
-	// Router
-	r := gin.Default()
+	authService := services.NewAuthService(cfg, authRepo)
 
-	// Root route
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "API Observatory",
-		})
-	})
+	authHandler := handlers.NewAuthHandler(authService)
 
-	// -------------------
-	// Public Auth Routes
-	// -------------------
-	authRoutes := r.Group("/auth")
-	{
-		authRoutes.POST("/register", handlers.Register)
-		authRoutes.POST("/login", handlers.Login)
-	}
+	router := routes.SetupRouter(cfg, authHandler)
 
-	// -------------------
-	// Protected Auth Routes
-	// -------------------
-	protectedAuth := r.Group("/auth")
-	protectedAuth.Use(middleware.AuthMiddleware())
-	{
-		protectedAuth.GET("/me", handlers.Me)
-		protectedAuth.POST("/refresh", handlers.Refresh)
-		protectedAuth.POST("/logout", handlers.Logout)
-
-		protectedAuth.GET("/profile", func(c *gin.Context) {
-			userID, _ := c.Get("userID")
-
-			c.JSON(200, gin.H{
-				"user_id": userID,
-			})
-		})
-	}
-
-	// -------------------
-	// Protected Endpoint Routes
-	// -------------------
-	endpoints := r.Group("/endpoints")
-	endpoints.Use(middleware.AuthMiddleware())
-	{
-		endpoints.POST("", endpointHandler.CreateEndpoint)
-		endpoints.GET("", endpointHandler.GetEndpoints)
-		endpoints.GET("/:id", endpointHandler.GetEndpoint)
-		endpoints.PUT("/:id", endpointHandler.UpdateEndpoint)
-		endpoints.DELETE("/:id", endpointHandler.DeleteEndpoint)
-	}
-
-	log.Println("Server running on :8080")
-
-	if err := r.Run(":8080"); err != nil {
+	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)
 	}
+
+	// // Handlers
+	// endpointHandler := handlers.EndpointHandler{
+	// 	DB: db,
+	// }
+
+	// // Router
+	// r := gin.Default()
+
+	// // Root route
+	// r.GET("/", func(c *gin.Context) {
+	// 	c.JSON(200, gin.H{
+	// 		"message": "API Observatory",
+	// 	})
+	// })
+
+	// // -------------------
+	// // Public Auth Routes
+	// // -------------------
+	// authRoutes := r.Group("/auth")
+	// {
+	// 	authRoutes.POST("/register", handlers.Register)
+	// 	authRoutes.POST("/login", handlers.Login)
+	// }
+
+	// // -------------------
+	// // Protected Auth Routes
+	// // -------------------
+	// protectedAuth := r.Group("/auth")
+	// protectedAuth.Use(middleware.AuthMiddleware())
+	// {
+	// 	protectedAuth.GET("/me", handlers.Me)
+	// 	protectedAuth.POST("/refresh", handlers.Refresh)
+	// 	protectedAuth.POST("/logout", handlers.Logout)
+
+	// 	protectedAuth.GET("/profile", func(c *gin.Context) {
+	// 		userID, _ := c.Get("userID")
+
+	// 		c.JSON(200, gin.H{
+	// 			"user_id": userID,
+	// 		})
+	// 	})
+	// }
+
+	// // -------------------
+	// // Protected Endpoint Routes
+	// // -------------------
+	// endpoints := r.Group("/endpoints")
+	// endpoints.Use(middleware.AuthMiddleware())
+	// {
+	// 	endpoints.POST("", endpointHandler.CreateEndpoint)
+	// 	endpoints.GET("", endpointHandler.GetEndpoints)
+	// 	endpoints.GET("/:id", endpointHandler.GetEndpoint)
+	// 	endpoints.PUT("/:id", endpointHandler.UpdateEndpoint)
+	// 	endpoints.DELETE("/:id", endpointHandler.DeleteEndpoint)
+	// }
+
+	// log.Println("Server running on :8080")
+
+	// if err := r.Run(":8080"); err != nil {
+	// 	log.Fatal(err)
+	// }
 }

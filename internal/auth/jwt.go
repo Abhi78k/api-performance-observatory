@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"os"
 	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -12,7 +12,7 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID uint) (string, error) {
+func GenerateAccessToken(cfg *config.Config, userID uint) (string, error) {
 	claims := Claims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -28,19 +28,20 @@ func GenerateToken(userID uint) (string, error) {
 	)
 
 	return token.SignedString(
-		[]byte(os.Getenv("JWT_SECRET")),
+		[]byte(cfg.JWTSecret),
 	)
 }
 
 func ValidateToken(
+	cfg *config.Config,
 	tokenString string,
 ) (*jwt.Token, error) {
 	return jwt.ParseWithClaims(
 		tokenString,
 		&Claims{},
-		func(token *jwt.Token) (interface{}, error) {
+		func(token *jwt.Token) (any, error) {
 			return []byte(
-				os.Getenv("JWT_SECRET"),
+				cfg.JWTSecret,
 			), nil
 		},
 	)

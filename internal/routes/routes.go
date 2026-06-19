@@ -10,29 +10,60 @@ import (
 func SetupRouter(
 	cfg *config.Config,
 	authHandler *handlers.AuthHandler,
+	endpointHandler *handlers.EndpointHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
 
-	protected := router.Group("/auth")
-	protected.Use(middleware.AuthMiddleware(cfg))
-
 	auth := router.Group("/auth")
+	{
+		auth.POST(
+			"/register",
+			authHandler.Register,
+		)
 
-	auth.POST(
-		"/register",
-		authHandler.Register,
+		auth.POST(
+			"/login",
+			authHandler.Login,
+		)
+	}
+
+	protected := router.Group("/")
+	protected.Use(
+		middleware.AuthMiddleware(cfg),
 	)
 
-	auth.POST(
-		"/login",
-		authHandler.Login,
-	)
+	{
+		protected.GET(
+			"/auth/me",
+			authHandler.GetMe,
+		)
 
-	protected.GET(
-		"/me",
-		authHandler.GetMe,
-	)
+		protected.POST(
+			"/endpoints",
+			endpointHandler.CreateEndpoint,
+		)
+
+		protected.GET(
+			"/endpoints",
+			endpointHandler.GetEndpoints,
+		)
+
+		protected.GET(
+			"/endpoints/:id",
+			endpointHandler.GetEndpoint,
+		)
+
+		protected.PUT(
+			"/endpoints/:id",
+			endpointHandler.UpdateEndpoint,
+		)
+
+		protected.DELETE(
+			"/endpoints/:id",
+			endpointHandler.DeleteEndpoint,
+		)
+	}
 
 	return router
 }

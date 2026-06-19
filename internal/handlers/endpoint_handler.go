@@ -3,10 +3,13 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/Abhi78k/api-performance-observatory/internal/models"
+	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
+
+type EndpointHandler struct {
+	endpointService *services.EndpointService
+}
 
 type CreateEndpointRequest struct {
 	Name           string `json:"name"`
@@ -20,8 +23,13 @@ type UpdateEndpointRequest struct {
 	ExpectedStatus int    `json:"expected_status"`
 }
 
-type EndpointHandler struct {
-	DB *gorm.DB
+func NewEndpointHandler(
+	endpointService *services.EndpointService,
+) *EndpointHandler {
+
+	return &EndpointHandler{
+		endpointService: endpointService,
+	}
 }
 
 func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
@@ -35,44 +43,34 @@ func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 		return
 	}
 
-	userID, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "user not found",
-		})
-		return
-	}
+	userID := c.MustGet("UserID").(uint)
 
-	endpoint := models.Endpoint{
-		Name:           req.Name,
-		URL:            req.URL,
-		ExpectedStatus: req.ExpectedStatus,
-		UserID:         userID.(uint),
-	}
+	endpoint, err := h.endpointService.CreateEndpoint(
+		req.Name,
+		req.URL,
+		req.ExpectedStatus,
+		userID,
+	)
 
-	if err := h.DB.Create(&endpoint).Error; err != nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to create endpoint",
+			"error": err.Error(),
 		})
 		return
 	}
 
 	c.JSON(http.StatusCreated, endpoint)
-
 }
 
 func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 
-	userID, _ := c.Get("userID")
+	userID := c.MustGet("UserID").(uint)
 
-	var endpoints []models.Endpoint
+	endpoints, err := h.endpointService.GetEndpoints(userID)
 
-	if err := h.DB.
-		Where("user_id = ?", userID).
-		Find(&endpoints).Error; err != nil {
-
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to fetch endpoints",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -83,14 +81,14 @@ func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
 
 	id := c.Param("id")
-	userID, _ := c.Get("userID")
+	userID := c.MustGet("UserID").(uint)
 
-	var endpoint models.Endpoint
+	endpoint, err := h.endpointService.GetEndpoint(
+		id,
+		userID,
+	)
 
-	if err := h.DB.
-		Where("id = ? AND user_id = ?", id, userID).
-		First(&endpoint).Error; err != nil {
-
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "endpoint not found",
 		})
@@ -103,19 +101,7 @@ func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
 func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 
 	id := c.Param("id")
-	userID, _ := c.Get("userID")
-
-	var endpoint models.Endpoint
-
-	if err := h.DB.
-		Where("id = ? AND user_id = ?", id, userID).
-		First(&endpoint).Error; err != nil {
-
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "endpoint not found",
-		})
-		return
-	}
+	userID := c.MustGet("UserID").(uint)
 
 	var req UpdateEndpointRequest
 
@@ -126,13 +112,17 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 		return
 	}
 
-	endpoint.Name = req.Name
-	endpoint.URL = req.URL
-	endpoint.ExpectedStatus = req.ExpectedStatus
+	endpoint, err := h.endpointService.UpdateEndpoint(
+		id,
+		userID,
+		req.Name,
+		req.URL,
+		req.ExpectedStatus,
+	)
 
-	if err := h.DB.Save(&endpoint).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to update endpoint",
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "endpoint not found",
 		})
 		return
 	}
@@ -141,24 +131,18 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 }
 
 func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
+
 	id := c.Param("id")
-	userID, _ := c.Get("userID")
+	userID := c.MustGet("UserID").(uint)
 
-	var endpoint models.Endpoint
+	err := h.endpointService.DeleteEndpoint(
+		id,
+		userID,
+	)
 
-	if err := h.DB.
-		Where("id = ? AND user_id = ?", id, userID).
-		First(&endpoint).Error; err != nil {
-
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "endpoint not found",
-		})
-		return
-	}
-
-	if err := h.DB.Delete(&endpoint).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to delete endpoint",
 		})
 		return
 	}
@@ -166,5 +150,4 @@ func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "endpoint deleted successfully",
 	})
-
 }

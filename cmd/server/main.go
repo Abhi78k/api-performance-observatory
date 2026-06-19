@@ -37,12 +37,15 @@ func main() {
 	}
 
 	authRepo := repositories.NewUserRepository(db)
+	endpointRepo := repositories.NewEndpointRepository(db)
 
 	authService := services.NewAuthService(cfg, authRepo)
+	endpointService := services.NewEndpointService(endpointRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
+	endpointHandler := handlers.NewEndpointHandler(endpointService)
 
-	router := routes.SetupRouter(cfg, authHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

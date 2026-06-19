@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
 	"github.com/Abhi78k/api-performance-observatory/internal/middleware"
@@ -13,8 +14,11 @@ import (
 
 func main() {
 
+	// Load Config 🐽
+	cfg := config.Load()
+
 	// Database
-	db, err := database.ConnectDB()
+	db, err := database.ConnectDB(cfg)
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)
 	}

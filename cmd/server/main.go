@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	// Load Config 🐽
+	// Load Config
 	cfg := config.Load()
 
 	// Database
@@ -28,7 +28,7 @@ func main() {
 	// Migrations
 	err = db.AutoMigrate(
 		&models.User{},
-		&models.Service{},
+		&models.Endpoint{},
 		&models.HealthCheck{},
 	)
 
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Handlers
-	serviceHandler := handlers.ServiceHandler{
+	endpointHandler := handlers.EndpointHandler{
 		DB: db,
 	}
 
@@ -80,16 +80,16 @@ func main() {
 	}
 
 	// -------------------
-	// Protected Service Routes
+	// Protected Endpoint Routes
 	// -------------------
-	services := r.Group("/services")
-	services.Use(middleware.AuthMiddleware())
+	endpoints := r.Group("/endpoints")
+	endpoints.Use(middleware.AuthMiddleware())
 	{
-		services.POST("", serviceHandler.CreateService)
-		services.GET("", serviceHandler.GetServices)
-		services.GET("/:id", serviceHandler.GetService)
-		services.PUT("/:id", serviceHandler.UpdateService)
-		services.DELETE("/:id", serviceHandler.DeleteService)
+		endpoints.POST("", endpointHandler.CreateEndpoint)
+		endpoints.GET("", endpointHandler.GetEndpoints)
+		endpoints.GET("/:id", endpointHandler.GetEndpoint)
+		endpoints.PUT("/:id", endpointHandler.UpdateEndpoint)
+		endpoints.DELETE("/:id", endpointHandler.DeleteEndpoint)
 	}
 
 	log.Println("Server running on :8080")

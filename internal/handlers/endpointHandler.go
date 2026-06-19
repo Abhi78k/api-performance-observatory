@@ -8,25 +8,25 @@ import (
 	"gorm.io/gorm"
 )
 
-type CreateServiceRequest struct {
+type CreateEndpointRequest struct {
 	Name           string `json:"name"`
 	URL            string `json:"url"`
 	ExpectedStatus int    `json:"expected_status"`
 }
 
-type UpdateServiceRequest struct {
+type UpdateEndpointRequest struct {
 	Name           string `json:"name"`
 	URL            string `json:"url"`
 	ExpectedStatus int    `json:"expected_status"`
 }
 
-type ServiceHandler struct {
+type EndpointHandler struct {
 	DB *gorm.DB
 }
 
-func (h *ServiceHandler) CreateService(c *gin.Context) {
+func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 
-	var req CreateServiceRequest
+	var req CreateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -43,81 +43,81 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 		return
 	}
 
-	service := models.Service{
+	endpoint := models.Endpoint{
 		Name:           req.Name,
 		URL:            req.URL,
 		ExpectedStatus: req.ExpectedStatus,
 		UserID:         userID.(uint),
 	}
 
-	if err := h.DB.Create(&service).Error; err != nil {
+	if err := h.DB.Create(&endpoint).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to create service",
+			"error": "failed to create endpoint",
 		})
 		return
 	}
 
-	c.JSON(http.StatusCreated, service)
+	c.JSON(http.StatusCreated, endpoint)
 
 }
 
-func (h *ServiceHandler) GetServices(c *gin.Context) {
+func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 
 	userID, _ := c.Get("userID")
 
-	var services []models.Service
+	var endpoints []models.Endpoint
 
 	if err := h.DB.
 		Where("user_id = ?", userID).
-		Find(&services).Error; err != nil {
+		Find(&endpoints).Error; err != nil {
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to fetch services",
+			"error": "failed to fetch endpoints",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, services)
+	c.JSON(http.StatusOK, endpoints)
 }
 
-func (h *ServiceHandler) GetService(c *gin.Context) {
+func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
 
 	id := c.Param("id")
 	userID, _ := c.Get("userID")
 
-	var service models.Service
+	var endpoint models.Endpoint
 
 	if err := h.DB.
 		Where("id = ? AND user_id = ?", id, userID).
-		First(&service).Error; err != nil {
+		First(&endpoint).Error; err != nil {
 
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "service not found",
+			"error": "endpoint not found",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, service)
+	c.JSON(http.StatusOK, endpoint)
 }
 
-func (h *ServiceHandler) UpdateService(c *gin.Context) {
+func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 
 	id := c.Param("id")
 	userID, _ := c.Get("userID")
 
-	var service models.Service
+	var endpoint models.Endpoint
 
 	if err := h.DB.
 		Where("id = ? AND user_id = ?", id, userID).
-		First(&service).Error; err != nil {
+		First(&endpoint).Error; err != nil {
 
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "service not found",
+			"error": "endpoint not found",
 		})
 		return
 	}
 
-	var req UpdateServiceRequest
+	var req UpdateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -126,45 +126,45 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 		return
 	}
 
-	service.Name = req.Name
-	service.URL = req.URL
-	service.ExpectedStatus = req.ExpectedStatus
+	endpoint.Name = req.Name
+	endpoint.URL = req.URL
+	endpoint.ExpectedStatus = req.ExpectedStatus
 
-	if err := h.DB.Save(&service).Error; err != nil {
+	if err := h.DB.Save(&endpoint).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to update service",
+			"error": "failed to update endpoint",
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, service)
+	c.JSON(http.StatusOK, endpoint)
 }
 
-func (h *ServiceHandler) DeleteService(c *gin.Context) {
+func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
 	id := c.Param("id")
 	userID, _ := c.Get("userID")
 
-	var service models.Service
+	var endpoint models.Endpoint
 
 	if err := h.DB.
 		Where("id = ? AND user_id = ?", id, userID).
-		First(&service).Error; err != nil {
+		First(&endpoint).Error; err != nil {
 
 		c.JSON(http.StatusNotFound, gin.H{
-			"error": "service not found",
+			"error": "endpoint not found",
 		})
 		return
 	}
 
-	if err := h.DB.Delete(&service).Error; err != nil {
+	if err := h.DB.Delete(&endpoint).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to delete service",
+			"error": "failed to delete endpoint",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "service deleted successfully",
+		"message": "endpoint deleted successfully",
 	})
 
 }

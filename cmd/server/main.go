@@ -1,66 +1,96 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
 	"github.com/Abhi78k/api-performance-observatory/internal/middleware"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
+
 	"github.com/gin-gonic/gin"
-	
 )
 
 func main() {
+
+	// Database
 	db, err := database.ConnectDB()
 	if err != nil {
-		panic(err)
+		log.Fatal("Failed to connect to database:", err)
 	}
 
-	fmt.Println("Database connected!")
+	log.Println("Database connected!")
 
-	_ = db
-
-	db.AutoMigrate(
+	// Migrations
+	err = db.AutoMigrate(
 		&models.User{},
 		&models.Service{},
+		&models.HealthCheck{},
 	)
 
-	// serviceHandler := handlers.ServiceHandler{
-	// 	DB: db,
-	// }
+	if err != nil {
+		log.Fatal("Migration failed:", err)
+	}
+
+	// Handlers
+	serviceHandler := handlers.ServiceHandler{
+		DB: db,
+	}
+
+	// Router
 	r := gin.Default()
 
-	// r.POST("/services", serviceHandler.CreateService)
-	// r.GET("/services", serviceHandler.GetServices)
-	// r.GET("/services/:id", serviceHandler.GetService)
-	// r.PUT("/services/:id", serviceHandler.UpdateService)
-	// r.DELETE("/services/:id", serviceHandler.DeleteService)
-
+	// Root route
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "API Observatory",
 		})
 	})
 
+	// -------------------
+	// Public Auth Routes
+	// -------------------
 	authRoutes := r.Group("/auth")
-	authRoutes.POST("/register", handlers.Register)
-	authRoutes.POST("/login", handlers.Login)
+	{
+		authRoutes.POST("/register", handlers.Register)
+		authRoutes.POST("/login", handlers.Login)
+	}
 
-	protected := r.Group("/auth")
-	protected.Use(middleware.AuthMiddleware())
-	protected.GET("/me", handlers.Me)
-	protected.POST("/refresh", handlers.Refresh)
-	protected.POST("/logout", handlers.Logout)
+	// -------------------
+	// Protected Auth Routes
+	// -------------------
+	protectedAuth := r.Group("/auth")
+	protectedAuth.Use(middleware.AuthMiddleware())
+	{
+		protectedAuth.GET("/me", handlers.Me)
+		protectedAuth.POST("/refresh", handlers.Refresh)
+		protectedAuth.POST("/logout", handlers.Logout)
 
-	protected.GET("/profile", func(c *gin.Context) {
-		userID, _ := c.Get("userID")
+		protectedAuth.GET("/profile", func(c *gin.Context) {
+			userID, _ := c.Get("userID")
 
-		c.JSON(200, gin.H{
-			"user_id": userID,
+			c.JSON(200, gin.H{
+				"user_id": userID,
+			})
 		})
-	})
+	}
 
-	r.Run(":8080")
+	// -------------------
+	// Protected Service Routes
+	// -------------------
+	services := r.Group("/services")
+	services.Use(middleware.AuthMiddleware())
+	{
+		services.POST("", serviceHandler.CreateService)
+		services.GET("", serviceHandler.GetServices)
+		services.GET("/:id", serviceHandler.GetService)
+		services.PUT("/:id", serviceHandler.UpdateService)
+		services.DELETE("/:id", serviceHandler.DeleteService)
+	}
 
+	log.Println("Server running on :8080")
+
+	if err := r.Run(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

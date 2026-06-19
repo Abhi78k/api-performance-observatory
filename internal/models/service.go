@@ -8,7 +8,6 @@ type Service struct {
 	URL            string `gorm:"not null"`
 	ExpectedStatus int    `gorm:"default:200"`
 	UserID         uint
-
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }

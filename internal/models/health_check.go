@@ -6,7 +6,7 @@ import (
 
 type HealthCheck struct {
 	ID           uint `gorm: "primaryKey"`
-	ServiceID    uint
+	EndpointID   uint
 	StatusCode   int
 	ResponseTime int64
 	Success      bool

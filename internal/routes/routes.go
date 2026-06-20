@@ -11,6 +11,7 @@ func SetupRouter(
 	cfg *config.Config,
 	authHandler *handlers.AuthHandler,
 	endpointHandler *handlers.EndpointHandler,
+	statsHandler *handlers.StatsHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -25,6 +26,18 @@ func SetupRouter(
 		auth.POST(
 			"/login",
 			authHandler.Login,
+		)
+	}
+
+	stats := router.Group("/endpoints")
+	stats.Use(
+		middleware.AuthMiddleware(cfg),
+	)
+
+	{
+		stats.GET(
+			"/:id/stats",
+			statsHandler.GetEndpointStats,
 		)
 	}
 

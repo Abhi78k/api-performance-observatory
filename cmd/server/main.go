@@ -38,14 +38,17 @@ func main() {
 
 	authRepo := repositories.NewUserRepository(db)
 	endpointRepo := repositories.NewEndpointRepository(db)
+	healthCheckRepo := repositories.NewHealthCheckRepo(db)
 
 	authService := services.NewAuthService(cfg, authRepo)
 	endpointService := services.NewEndpointService(endpointRepo)
+	healthCheckService := services.NewHealthCheckService(healthCheckRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	endpointHandler := handlers.NewEndpointHandler(endpointService)
+	statsHandler := handlers.NewStatsHandler(healthCheckService)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

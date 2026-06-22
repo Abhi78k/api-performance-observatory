@@ -30,7 +30,25 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
 	start := time.Now()
 
-	resp, err := client.Get(endpoint.URL)
+	var resp *http.Response
+	var err error
+
+	for i := 0; i < 3; i++ {
+
+		resp, err = client.Get(endpoint.URL)
+
+		if err == nil &&
+			resp.StatusCode == endpoint.ExpectedStatus {
+
+			break
+		}
+
+		if resp != nil {
+			resp.Body.Close()
+		}
+
+		time.Sleep(1 * time.Second)
+	}
 
 	responseTime := time.Since(start).Milliseconds()
 

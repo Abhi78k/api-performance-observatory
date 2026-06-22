@@ -30,6 +30,7 @@ func main() {
 		&models.User{},
 		&models.Endpoint{},
 		&models.HealthCheck{},
+		&models.Incident{},
 	)
 
 	if err != nil {
@@ -53,8 +54,9 @@ func main() {
 	endpointHandler := handlers.NewEndpointHandler(endpointService)
 	statsHandler := handlers.NewStatsHandler(healthCheckService)
 	healthCheckHandler := handlers.NewHealthCheckHandler(healthCheckService)
+	incidentHandler := handlers.NewIncidentHandler(incidentService)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

@@ -58,7 +58,7 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 
 func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 
-	endpointID := c.Param("endpointID")
+	endpointID := c.Param("id")
 
 	id, err := strconv.ParseUint(endpointID, 10, 64)
 	if err != nil {

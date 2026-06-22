@@ -50,7 +50,7 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 			return err
 		}
 
-		incident, err := s.incidentService.GetActiveIncident(
+		incident, err := s.incidentService.GetActiveIncidentByID(
 			endpoint.ID,
 		)
 
@@ -85,9 +85,10 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 		return err
 	}
 
+	// Endpoint failed -> create incident if one doesn't exist
 	if !check.Success {
 
-		incident, err := s.incidentService.GetActiveIncident(
+		incident, err := s.incidentService.GetActiveIncidentByID(
 			endpoint.ID,
 		)
 
@@ -95,6 +96,25 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
 			err = s.incidentService.StartIncident(
 				endpoint.ID,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Endpoint recovered -> resolve active incident
+	if check.Success {
+
+		incident, err := s.incidentService.GetActiveIncident(
+			endpoint.ID,
+		)
+
+		if err == nil && incident != nil {
+
+			err = s.incidentService.ResolveIncident(
+				incident,
 			)
 
 			if err != nil {

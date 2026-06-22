@@ -60,3 +60,13 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
 	return s.HealthCheckRepo.Create(&check)
 }
+
+func (s *HealthCheckService) GetAllHealthChecks(endpointID uint) ([]models.HealthCheck, error) {
+	checks, err := s.HealthCheckRepo.GetByEndpointID(endpointID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return checks, nil
+}

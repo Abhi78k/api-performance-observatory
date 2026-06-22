@@ -11,12 +11,14 @@ import (
 type HealthCheckService struct {
 	EndpointRepo    *repositories.EndpointRepository
 	HealthCheckRepo *repositories.HealthCheckRepository
+	incidentService *IncidentService
 }
 
-func NewHealthCheckService(endpointRepo *repositories.EndpointRepository, healthCheckRepo *repositories.HealthCheckRepository) *HealthCheckService {
+func NewHealthCheckService(endpointRepo *repositories.EndpointRepository, healthCheckRepo *repositories.HealthCheckRepository, incidentService *IncidentService) *HealthCheckService {
 	return &HealthCheckService{
 		EndpointRepo:    endpointRepo,
 		HealthCheckRepo: healthCheckRepo,
+		incidentService: incidentService,
 	}
 }
 
@@ -43,7 +45,26 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 			CheckedAt:    time.Now(),
 		}
 
-		return s.HealthCheckRepo.Create(&check)
+		err := s.HealthCheckRepo.Create(&check)
+		if err != nil {
+			return err
+		}
+
+		incident, err := s.incidentService.GetActiveIncident(
+			endpoint.ID,
+		)
+
+		if err == nil && incident == nil {
+			err = s.incidentService.StartIncident(
+				endpoint.ID,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}
 
 	defer resp.Body.Close()
@@ -58,7 +79,31 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 		CheckedAt:    time.Now(),
 	}
 
-	return s.HealthCheckRepo.Create(&check)
+	err = s.HealthCheckRepo.Create(&check)
+
+	if err != nil {
+		return err
+	}
+
+	if !check.Success {
+
+		incident, err := s.incidentService.GetActiveIncident(
+			endpoint.ID,
+		)
+
+		if err == nil && incident == nil {
+
+			err = s.incidentService.StartIncident(
+				endpoint.ID,
+			)
+
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *HealthCheckService) GetByEndpointID(endpointID uint) ([]models.HealthCheck, error) {

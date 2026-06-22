@@ -30,6 +30,7 @@ func main() {
 		&models.User{},
 		&models.Endpoint{},
 		&models.HealthCheck{},
+		&models.Incident{},
 	)
 
 	if err != nil {

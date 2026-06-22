@@ -21,7 +21,7 @@ func (r *IncidentRepository) Create(
 	return r.db.Create(incident).Error
 }
 
-func (r *IncidentRepository) GetActiveIncident(
+func (r *IncidentRepository) GetActiveIncidentByID(
 	endpointID uint,
 ) (*models.Incident, error) {
 
@@ -59,6 +59,48 @@ func (r *IncidentRepository) GetByEndpointID(
 		Where("endpoint_id = ?", endpointID).
 		Find(&incidents).
 		Error
+
+	return incidents, err
+}
+
+func (r *IncidentRepository) GetAllIncidents() ([]models.Incident, error) {
+
+	var incidents []models.Incident
+
+	err := r.db.Order("started_at DESC").Find(&incidents).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return incidents, err
+}
+
+func (r *IncidentRepository) GetIncidentByID(id uint) (*models.Incident, error) {
+
+	var incident models.Incident
+
+	err := r.db.Where("ID = ?", id).First(&incident).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &incident, nil
+}
+
+func (r *IncidentRepository) GetActiveIncidents() (
+	[]models.Incident,
+	error,
+) {
+
+	var incidents []models.Incident
+
+	err := r.db.Where("is_resolved = ?", false).Find(&incidents).Error
+
+	if err != nil {
+		return nil, err
+	}
 
 	return incidents, err
 }

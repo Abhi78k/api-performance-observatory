@@ -13,6 +13,7 @@ func SetupRouter(
 	endpointHandler *handlers.EndpointHandler,
 	statsHandler *handlers.StatsHandler,
 	healthCheckHandler *handlers.HealthCheckHandler,
+	incidentsHandler *handlers.IncidentHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -68,6 +69,11 @@ func SetupRouter(
 			endpointHandler.GetEndpoint,
 		)
 
+		protected.GET(
+			"/endpoints/:id/incidents",
+			incidentsHandler.GetIncidentByEndpointID,
+		)
+
 		protected.PUT(
 			"/endpoints/:id",
 			endpointHandler.UpdateEndpoint,
@@ -91,6 +97,26 @@ func SetupRouter(
 		healthCheck.GET(
 			"/:id",
 			healthCheckHandler.GetAllHealthChecks,
+		)
+	}
+
+	incidents := router.Group("/incidents")
+	protected.Use(middleware.AuthMiddleware(cfg))
+
+	{
+		incidents.GET(
+			"/",
+			incidentsHandler.ListIncidents,
+		)
+
+		incidents.GET(
+			"/:id",
+			incidentsHandler.GetIncidentByID,
+		)
+
+		incidents.GET(
+			"/active",
+			incidentsHandler.GetActiveIncidents,
 		)
 	}
 

@@ -145,3 +145,12 @@ func (s *HealthCheckService) GetAll() ([]models.HealthCheck, error) {
 
 	return checks, err
 }
+
+func (s *HealthCheckService) GetLatestByEndpointID(
+	endpointID uint,
+) (*models.HealthCheck, error) {
+
+	return s.HealthCheckRepo.GetLatestByEndpointID(
+		endpointID,
+	)
+}

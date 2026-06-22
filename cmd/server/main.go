@@ -45,8 +45,9 @@ func main() {
 	authService := services.NewAuthService(cfg, authRepo)
 	endpointService := services.NewEndpointService(endpointRepo)
 	incidentService := services.NewIncidentService(incidentRepo)
-	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo,incidentService)
+	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
+	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo)
 
 	go schedulerService.Start()
 
@@ -55,8 +56,9 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(healthCheckService)
 	healthCheckHandler := handlers.NewHealthCheckHandler(healthCheckService)
 	incidentHandler := handlers.NewIncidentHandler(incidentService)
+	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, dashboardHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

@@ -39,3 +39,18 @@ func (r *HealthCheckRepository) GetAll() ([]models.HealthCheck, error) {
 
 	return checks, err
 }
+
+func (r *HealthCheckRepository) GetLatestByEndpointID(
+	endpointID uint,
+) (*models.HealthCheck, error) {
+
+	var check models.HealthCheck
+
+	err := r.DB.Where("endpoint_id = ?", endpointID).Order("checked_at DESC").First(&check).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &check, nil
+}

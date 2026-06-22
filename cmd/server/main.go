@@ -47,8 +47,9 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	endpointHandler := handlers.NewEndpointHandler(endpointService)
 	statsHandler := handlers.NewStatsHandler(healthCheckService)
+	healthCheckHandler := handlers.NewHealthCheckHandler(healthCheckService)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

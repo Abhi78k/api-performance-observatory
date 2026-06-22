@@ -61,7 +61,7 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 	return s.HealthCheckRepo.Create(&check)
 }
 
-func (s *HealthCheckService) GetAllHealthChecks(endpointID uint) ([]models.HealthCheck, error) {
+func (s *HealthCheckService) GetByEndpointID(endpointID uint) ([]models.HealthCheck, error) {
 	checks, err := s.HealthCheckRepo.GetByEndpointID(endpointID)
 
 	if err != nil {
@@ -69,4 +69,14 @@ func (s *HealthCheckService) GetAllHealthChecks(endpointID uint) ([]models.Healt
 	}
 
 	return checks, nil
+}
+
+func (s *HealthCheckService) GetAll() ([]models.HealthCheck, error) {
+	checks, err := s.HealthCheckRepo.GetAll()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return checks, err
 }

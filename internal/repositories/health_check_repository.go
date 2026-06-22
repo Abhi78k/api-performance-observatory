@@ -31,3 +31,11 @@ func (r *HealthCheckRepository) GetByEndpointID(endpointID uint) ([]models.Healt
 
 	return checks, err
 }
+
+func (r *HealthCheckRepository) GetAll() ([]models.HealthCheck, error) {
+	var checks []models.HealthCheck
+
+	err := r.DB.Order("checked_at DESC").Find(&checks).Error
+
+	return checks, err
+}

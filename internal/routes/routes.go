@@ -12,6 +12,7 @@ func SetupRouter(
 	authHandler *handlers.AuthHandler,
 	endpointHandler *handlers.EndpointHandler,
 	statsHandler *handlers.StatsHandler,
+	healthCheckHandler *handlers.HealthCheckHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -75,6 +76,21 @@ func SetupRouter(
 		protected.DELETE(
 			"/endpoints/:id",
 			endpointHandler.DeleteEndpoint,
+		)
+	}
+
+	healthCheck := router.Group("/healthchecks")
+	protected.Use(middleware.AuthMiddleware(cfg))
+
+	{
+		healthCheck.GET(
+			"/",
+			healthCheckHandler.GetByEndpointID,
+		)
+
+		healthCheck.GET(
+			"/:id",
+			healthCheckHandler.GetAllHealthChecks,
 		)
 	}
 

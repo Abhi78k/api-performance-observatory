@@ -35,7 +35,7 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 	}
 
 	// Fetch all health checks for the service
-	checks, err := h.healthCheckService.GetAllHealthChecks((uint(endpointID)))
+	checks, err := h.healthCheckService.GetByEndpointID((uint(endpointID)))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch health checks",

@@ -31,11 +31,11 @@ func (s *IncidentService) StartIncident(
 	return s.incidentRepo.Create(incident)
 }
 
-func (s *IncidentService) GetActiveIncidentByID(
+func (s *IncidentService) GetActiveIncidentByEndpointID(
 	endpointID uint,
 ) (*models.Incident, error) {
 
-	return s.incidentRepo.GetActiveIncidentByID(endpointID)
+	return s.incidentRepo.GetActiveIncidentByEndpointID(endpointID)
 }
 
 func (s *IncidentService) GetActiveIncidents() (

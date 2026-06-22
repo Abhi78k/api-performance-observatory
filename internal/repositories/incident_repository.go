@@ -21,7 +21,7 @@ func (r *IncidentRepository) Create(
 	return r.db.Create(incident).Error
 }
 
-func (r *IncidentRepository) GetActiveIncidentByID(
+func (r *IncidentRepository) GetActiveIncidentByEndpointID(
 	endpointID uint,
 ) (*models.Incident, error) {
 

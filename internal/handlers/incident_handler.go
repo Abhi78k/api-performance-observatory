@@ -110,7 +110,7 @@ func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
 		return
 	}
 
-	incidents, err := h.incidentService.GetActiveIncidentByID(uint(id))
+	incidents, err := h.incidentService.GetActiveIncidentByEndpointID(uint(id))
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

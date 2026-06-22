@@ -1,6 +1,8 @@
 package services
 
 import (
+	"time"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 )
@@ -19,8 +21,17 @@ func (s *IncidentStatsService) CalculateStats(
 	totalIncidents := len(incidents)
 
 	var totalDowntimeMinutes float64
+	var monitoringStart time.Time
 
-	for _, incident := range incidents {
+	for i, incident := range incidents {
+
+		if i == 0 {
+			monitoringStart = incident.StartedAt
+		}
+
+		if incident.StartedAt.Before(monitoringStart) {
+			monitoringStart = incident.StartedAt
+		}
 
 		if incident.ResolvedAt != nil {
 
@@ -40,9 +51,20 @@ func (s *IncidentStatsService) CalculateStats(
 				float64(totalIncidents)
 	}
 
-	// Placeholder for now.
-	// We'll implement the real uptime formula in the next task.
 	uptimePercentage := 100.0
+
+	if totalIncidents > 0 {
+
+		monitoringMinutes :=
+			time.Since(monitoringStart).Minutes()
+
+		if monitoringMinutes > 0 {
+
+			uptimePercentage =
+				((monitoringMinutes - totalDowntimeMinutes) /
+					monitoringMinutes) * 100
+		}
+	}
 
 	return dto.IncidentStatsResponse{
 		TotalIncidents:         totalIncidents,

@@ -31,11 +31,19 @@ func (s *IncidentService) StartIncident(
 	return s.incidentRepo.Create(incident)
 }
 
-func (s *IncidentService) GetActiveIncident(
+func (s *IncidentService) GetActiveIncidentByID(
 	endpointID uint,
 ) (*models.Incident, error) {
 
-	return s.incidentRepo.GetActiveIncident(endpointID)
+	return s.incidentRepo.GetActiveIncidentByID(endpointID)
+}
+
+func (s *IncidentService) GetActiveIncidents() (
+	[]models.Incident,
+	error,
+) {
+
+	return s.incidentRepo.GetActiveIncidents()
 }
 
 func (s *IncidentService) ResolveIncident(
@@ -48,4 +56,38 @@ func (s *IncidentService) ResolveIncident(
 	incident.IsResolved = true
 
 	return s.incidentRepo.Update(incident)
+}
+
+func (s *IncidentService) GetAllIncidents() (
+	[]models.Incident,
+	error,
+) {
+
+	incidents, err := s.incidentRepo.GetAllIncidents()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return incidents, err
+}
+
+func (s *IncidentService) GetIncidentByID(id uint) (
+	*models.Incident,
+	error,
+) {
+
+	incident, err := s.incidentRepo.GetIncidentByID(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return incident, err
+}
+
+func (s *IncidentService) GetIncidentsByEndpointID(
+	endpointID uint,
+) ([]models.Incident, error) {
+	return s.incidentRepo.GetByEndpointID(endpointID)
 }

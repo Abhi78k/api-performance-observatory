@@ -105,3 +105,81 @@ func (s *DashboardService) GetRecentIncidents() (
 ) {
 	return s.incidentRepo.GetRecentIncidents()
 }
+
+func (s *DashboardService) GetPerformance() (
+	dto.PerformanceStatsResponse,
+	error,
+) {
+
+	checks, err := s.healthCheckRepo.GetAll()
+
+	if err != nil {
+		return dto.PerformanceStatsResponse{}, err
+	}
+
+	service := NewPerformanceStatsService()
+
+	return service.CalculateStats(checks), nil
+}
+
+func (s *DashboardService) GetSuccessRate() (
+	dto.SuccessRateResponse,
+	error,
+) {
+
+	checks, err := s.healthCheckRepo.GetAll()
+
+	if err != nil {
+		return dto.SuccessRateResponse{}, nil
+	}
+
+	service := NewSuccessRateService()
+
+	return service.CalculateStats(checks), nil
+}
+
+func (s *DashboardService) GetUptime() (
+	dto.UptimeReportResponse,
+	error,
+) {
+
+	incidents, err := s.incidentRepo.GetAllIncidents()
+
+	if err != nil {
+		return dto.UptimeReportResponse{}, nil
+	}
+
+	incidentStats := NewIncidentStatsService()
+
+	uptimeService := NewUptimeReportService(incidentStats)
+
+	return uptimeService.GenerateReport(
+		incidents,
+	), nil
+}
+
+func (s *DashboardService) GetHistory() (
+	dto.HistoricalReportResponse,
+	error,
+) {
+
+	checks, err := s.healthCheckRepo.GetAll()
+
+	if err != nil {
+		return dto.HistoricalReportResponse{}, nil
+	}
+
+	performance := NewPerformanceStatsService()
+
+	success := NewSuccessRateService()
+
+	history := NewHistoricalReportService(
+		performance,
+		success,
+	)
+
+	return history.GenerateReport(
+		"30d",
+		checks,
+	), nil
+}

@@ -58,3 +58,57 @@ func (h *DashboardHandler) GetRecentIncidents(c *gin.Context) {
 
 	c.JSON(http.StatusOK, incidents)
 }
+
+func (h *DashboardHandler) GetPerformance(c *gin.Context) {
+
+	data, err := h.dashboadService.GetPerformance()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}
+
+func (h *DashboardHandler) GetSuccessRate(c *gin.Context) {
+
+	data, err := h.dashboadService.GetSuccessRate()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}
+
+func (h *DashboardHandler) GetUptime(c *gin.Context) {
+	data, err := h.dashboadService.GetUptime()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}
+
+func (h *DashboardHandler) GetHistory(c *gin.Context) {
+	data, err := h.dashboadService.GetHistory()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}

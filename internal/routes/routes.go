@@ -139,6 +139,26 @@ func SetupRouter(
 			"/incidents",
 			dashboardHandler.GetRecentIncidents,
 		)
+
+		dashboard.GET(
+			"/dashboard/performance",
+			dashboardHandler.GetPerformance,
+		)
+
+		dashboard.GET(
+			"/dashboard/success-rate",
+			dashboardHandler.GetSuccessRate,
+		)
+
+		dashboard.GET(
+			"/dashboard/uptime",
+			dashboardHandler.GetUptime,
+		)
+
+		dashboard.GET(
+			"/dashboard/history",
+			dashboardHandler.GetHistory,
+		)
 	}
 
 	return router

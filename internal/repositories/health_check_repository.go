@@ -20,7 +20,7 @@ func (r *HealthCheckRepository) Create(check *models.HealthCheck) error {
 	return r.DB.Create(check).Error
 }
 
-// GetByServiceID returns all health checks for a service
+// GetByEndpointID returns all health checks for a endpoint
 func (r *HealthCheckRepository) GetByEndpointID(endpointID uint) ([]models.HealthCheck, error) {
 
 	var checks []models.HealthCheck

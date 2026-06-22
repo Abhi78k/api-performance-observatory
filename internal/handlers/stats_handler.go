@@ -23,7 +23,7 @@ func NewStatsHandler(healthCheckService *services.HealthCheckService) *StatsHand
 // GET /services/:id/stats
 func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 
-	// Get service ID from URL
+	// Get endpoint ID from URL
 	idParam := c.Param("id")
 
 	endpointID, err := strconv.ParseUint(idParam, 10, 64)
@@ -35,7 +35,7 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 	}
 
 	// Fetch all health checks for the service
-	checks, err := h.healthCheckService.GetByEndpointID(uint(endpointID))
+	checks, err := h.healthCheckService.GetAllHealthChecks((uint(endpointID)))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": "failed to fetch health checks",

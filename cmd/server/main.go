@@ -45,7 +45,7 @@ func main() {
 	authService := services.NewAuthService(cfg, authRepo)
 	endpointService := services.NewEndpointService(endpointRepo)
 	incidentService := services.NewIncidentService(incidentRepo)
-	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
+	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo,incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
 
 	go schedulerService.Start()

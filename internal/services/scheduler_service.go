@@ -24,6 +24,19 @@ func NewSchedulerService(
 	}
 }
 
+func ShouldCheck(endpoint models.Endpoint) bool {
+
+	if endpoint.LastCheckedAt == nil {
+		return true
+	}
+
+	nextCheck := endpoint.LastCheckedAt.Add(
+		time.Duration(endpoint.CheckInterval) * time.Minute,
+	)
+
+	return time.Now().After(nextCheck)
+}
+
 func (s *SchedulerService) Start() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
@@ -47,11 +60,23 @@ func (s *SchedulerService) Start() {
 
 		var wg sync.WaitGroup
 
+		semaphore := make(chan struct{}, 10)
+
 		for _, endpoint := range endpoints {
+			if !ShouldCheck(endpoint) {
+				continue
+			}
+
 			wg.Add(1)
 
 			go func(ep models.Endpoint) {
-				defer wg.Done()
+
+				semaphore <- struct{}{}
+
+				defer func() {
+					<-semaphore
+					wg.Done()
+				}()
 
 				log.Printf("Checking endpoint: %s", ep.Name)
 
@@ -61,7 +86,20 @@ func (s *SchedulerService) Start() {
 						ep.ID,
 						err,
 					)
+					return
 				}
+
+				now := time.Now()
+				ep.LastCheckedAt = &now
+
+				if err := s.EndpointRepo.Update(&ep); err != nil {
+					log.Printf(
+						"failed to update last_checked_at for endpoint %d: %v",
+						ep.ID,
+						err,
+					)
+				}
+
 			}(endpoint)
 		}
 

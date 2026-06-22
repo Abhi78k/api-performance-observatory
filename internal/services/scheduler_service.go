@@ -10,17 +10,17 @@ import (
 )
 
 type SchedulerService struct {
-	EndpointRepo  *repositories.EndpointRepository
-	HealthService *HealthCheckService
+	EndpointRepo       *repositories.EndpointRepository
+	HealthCheckService *HealthCheckService
 }
 
 func NewSchedulerService(
 	endpointRepo *repositories.EndpointRepository,
-	healthService *HealthCheckService,
+	healthCheckService *HealthCheckService,
 ) *SchedulerService {
 	return &SchedulerService{
-		EndpointRepo:  endpointRepo,
-		HealthService: healthService,
+		EndpointRepo:       endpointRepo,
+		HealthCheckService: healthCheckService,
 	}
 }
 
@@ -55,7 +55,7 @@ func (s *SchedulerService) Start() {
 
 				log.Printf("Checking endpoint: %s", ep.Name)
 
-				if err := s.HealthService.CheckEndpoint(ep); err != nil {
+				if err := s.HealthCheckService.CheckEndpoint(ep); err != nil {
 					log.Printf(
 						"health check failed for endpoint %d: %v",
 						ep.ID,

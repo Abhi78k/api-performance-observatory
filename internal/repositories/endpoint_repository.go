@@ -21,6 +21,14 @@ func (r *EndpointRepository) Create(
 	return r.db.Create(endpoint).Error
 }
 
+func (r *EndpointRepository) GetAllEndpoints() ([]models.Endpoint, error) {
+	var endpoints []models.Endpoint
+
+	err := r.db.Find(&endpoints).Error
+
+	return endpoints, err
+}
+
 func (r *EndpointRepository) GetAllByUserID(
 	userID uint,
 ) ([]models.Endpoint, error) {

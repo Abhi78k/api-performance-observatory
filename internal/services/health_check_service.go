@@ -1,29 +1,62 @@
 package services
 
 import (
+	"net/http"
+	"time"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 )
 
 type HealthCheckService struct {
-	healthCheckRepo *repositories.HealthCheckRepository
+	EndpointRepo    *repositories.EndpointRepository
+	HealthCheckRepo *repositories.HealthCheckRepository
 }
 
-func NewHealthCheckService(healthCheckRepo *repositories.HealthCheckRepository) *HealthCheckService {
+func NewHealthCheckService(endpointRepo *repositories.EndpointRepository, healthCheckRepo *repositories.HealthCheckRepository) *HealthCheckService {
 	return &HealthCheckService{
-		healthCheckRepo: healthCheckRepo,
+		EndpointRepo:    endpointRepo,
+		HealthCheckRepo: healthCheckRepo,
 	}
 }
 
-func (s *HealthCheckService) Create(
-	check *models.HealthCheck,
-) error {
-	return s.healthCheckRepo.Create(check)
-}
+func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
-func (s *HealthCheckService) GetByEndpointID(
-	endpointID uint,
-) ([]models.HealthCheck, error) {
+	client := http.Client{
+		Timeout: 10 * time.Second,
+	}
 
-	return s.healthCheckRepo.GetByEndpointID(endpointID)
+	start := time.Now()
+
+	resp, err := client.Get(endpoint.URL)
+
+	responseTime := time.Since(start).Milliseconds()
+
+	// Request failed completely
+	if err != nil {
+
+		check := models.HealthCheck{
+			EndpointID:   endpoint.ID,
+			StatusCode:   0,
+			ResponseTime: responseTime,
+			Success:      false,
+			CheckedAt:    time.Now(),
+		}
+
+		return s.HealthCheckRepo.Create(&check)
+	}
+
+	defer resp.Body.Close()
+
+	success := resp.StatusCode == endpoint.ExpectedStatus
+
+	check := models.HealthCheck{
+		EndpointID:   endpoint.ID,
+		StatusCode:   resp.StatusCode,
+		ResponseTime: responseTime,
+		Success:      success,
+		CheckedAt:    time.Now(),
+	}
+
+	return s.HealthCheckRepo.Create(&check)
 }

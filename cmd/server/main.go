@@ -42,7 +42,8 @@ func main() {
 
 	authService := services.NewAuthService(cfg, authRepo)
 	endpointService := services.NewEndpointService(endpointRepo)
-	healthCheckService := services.NewHealthCheckService(healthCheckRepo)
+	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo)
+	schedulerService := services.NewSchedulerService(endpointRepo, healthService)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	endpointHandler := handlers.NewEndpointHandler(endpointService)

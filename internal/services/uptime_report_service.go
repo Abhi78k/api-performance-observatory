@@ -7,6 +7,7 @@ import (
 
 type UptimeReportService struct {
 	incidentStatsService *IncidentStatsService
+	monitoringService    *MonitoringService
 }
 
 func NewUptimeReportService(

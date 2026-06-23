@@ -31,6 +31,7 @@ func main() {
 		&models.Endpoint{},
 		&models.HealthCheck{},
 		&models.Incident{},
+		&models.Monitoring{},
 	)
 
 	if err != nil {
@@ -41,12 +42,15 @@ func main() {
 	endpointRepo := repositories.NewEndpointRepository(db)
 	healthCheckRepo := repositories.NewHealthCheckRepo(db)
 	incidentRepo := repositories.NewIncidentRepository(db)
+	monitoringRepo := repositories.NewMonitoringRepository(db)
 
 	authService := services.NewAuthService(cfg, authRepo)
-	endpointService := services.NewEndpointService(endpointRepo)
+	monitoringService := services.NewMonitoringService(monitoringRepo)
+	endpointService := services.NewEndpointService(endpointRepo,monitoringService)
 	incidentService := services.NewIncidentService(incidentRepo)
-	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo,incidentService)
+	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
+	
 
 	go schedulerService.Start()
 
@@ -55,8 +59,9 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(healthCheckService)
 	healthCheckHandler := handlers.NewHealthCheckHandler(healthCheckService)
 	incidentHandler := handlers.NewIncidentHandler(incidentService)
+	monitoringHandler := handlers.NewMonitoringHandler(monitoringService,)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

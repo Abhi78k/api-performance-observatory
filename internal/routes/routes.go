@@ -14,6 +14,7 @@ func SetupRouter(
 	statsHandler *handlers.StatsHandler,
 	healthCheckHandler *handlers.HealthCheckHandler,
 	incidentsHandler *handlers.IncidentHandler,
+	monitoringHandler *handlers.MonitoringHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -74,6 +75,10 @@ func SetupRouter(
 			incidentsHandler.GetIncidentByEndpointID,
 		)
 
+		protected.GET(
+		"/endpoints/:id/monitoring",
+		monitoringHandler.GetMonitoring,
+		)
 		protected.PUT(
 			"/endpoints/:id",
 			endpointHandler.UpdateEndpoint,

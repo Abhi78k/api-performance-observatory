@@ -6,15 +6,18 @@ import (
 )
 
 type EndpointService struct {
-	endpointRepo *repositories.EndpointRepository
+	endpointRepo      *repositories.EndpointRepository
+	monitoringService *MonitoringService
 }
 
 func NewEndpointService(
 	endpointRepo *repositories.EndpointRepository,
+	monitoringService *MonitoringService,
 ) *EndpointService {
 
 	return &EndpointService{
-		endpointRepo: endpointRepo,
+		endpointRepo:      endpointRepo,
+		monitoringService: monitoringService,
 	}
 }
 
@@ -33,6 +36,13 @@ func (s *EndpointService) CreateEndpoint(
 	}
 
 	err := s.endpointRepo.Create(endpoint)
+
+	if err != nil {
+		return nil, err
+	}
+	err = s.monitoringService.StartMonitoring(
+		endpoint.ID,
+	)
 
 	if err != nil {
 		return nil, err

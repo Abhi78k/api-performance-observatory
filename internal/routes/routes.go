@@ -97,12 +97,12 @@ func SetupRouter(
 	{
 		healthCheck.GET(
 			"/",
-			healthCheckHandler.GetByEndpointID,
+			healthCheckHandler.GetAllHealthChecks,
 		)
 
 		healthCheck.GET(
 			"/:id",
-			healthCheckHandler.GetAllHealthChecks,
+			healthCheckHandler.GetByEndpointID,
 		)
 	}
 

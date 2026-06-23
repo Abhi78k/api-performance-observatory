@@ -104,3 +104,19 @@ func (r *IncidentRepository) GetActiveIncidents() (
 
 	return incidents, err
 }
+
+func (r *IncidentRepository) GetRecentIncidents() (
+	[]models.Incident,
+	error,
+) {
+
+	var incidents []models.Incident
+
+	err := r.db.Order("started_at DESC").Limit(10).Find(&incidents).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return incidents, nil
+}

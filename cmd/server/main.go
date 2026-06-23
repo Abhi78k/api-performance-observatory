@@ -46,12 +46,11 @@ func main() {
 
 	authService := services.NewAuthService(cfg, authRepo)
 	monitoringService := services.NewMonitoringService(monitoringRepo)
-	endpointService := services.NewEndpointService(endpointRepo,monitoringService)
+	endpointService := services.NewEndpointService(endpointRepo, monitoringService)
 	incidentService := services.NewIncidentService(incidentRepo)
 	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
-	
-
+	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo)
 	go schedulerService.Start()
 
 	authHandler := handlers.NewAuthHandler(authService)
@@ -59,9 +58,10 @@ func main() {
 	statsHandler := handlers.NewStatsHandler(healthCheckService)
 	healthCheckHandler := handlers.NewHealthCheckHandler(healthCheckService)
 	incidentHandler := handlers.NewIncidentHandler(incidentService)
-	monitoringHandler := handlers.NewMonitoringHandler(monitoringService,)
+	monitoringHandler := handlers.NewMonitoringHandler(monitoringService)
+	dashboardHandler := handlers.NewDashboardHandler(dashboardService)
 
-	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler)
+	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler, dashboardHandler)
 
 	if err := router.Run(":8080"); err != nil {
 		log.Fatal(err)

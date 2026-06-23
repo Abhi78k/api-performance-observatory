@@ -15,6 +15,7 @@ func SetupRouter(
 	healthCheckHandler *handlers.HealthCheckHandler,
 	incidentsHandler *handlers.IncidentHandler,
 	monitoringHandler *handlers.MonitoringHandler,
+	dashboardHandler *handlers.DashboardHandler,
 ) *gin.Engine {
 
 	router := gin.Default()
@@ -122,6 +123,46 @@ func SetupRouter(
 		incidents.GET(
 			"/active",
 			incidentsHandler.GetActiveIncidents,
+		)
+	}
+
+	dashboard := router.Group("/dashboard")
+	dashboard.Use(middleware.AuthMiddleware(cfg))
+
+	{
+		dashboard.GET(
+			"/overview",
+			dashboardHandler.GetOverview,
+		)
+
+		dashboard.GET(
+			"/status",
+			dashboardHandler.GetStatus,
+		)
+
+		dashboard.GET(
+			"/incidents",
+			dashboardHandler.GetRecentIncidents,
+		)
+
+		dashboard.GET(
+			"/dashboard/performance",
+			dashboardHandler.GetPerformance,
+		)
+
+		dashboard.GET(
+			"/dashboard/success-rate",
+			dashboardHandler.GetSuccessRate,
+		)
+
+		dashboard.GET(
+			"/dashboard/uptime",
+			dashboardHandler.GetUptime,
+		)
+
+		dashboard.GET(
+			"/dashboard/history",
+			dashboardHandler.GetHistory,
 		)
 	}
 

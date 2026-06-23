@@ -77,8 +77,8 @@ func SetupRouter(
 		)
 
 		protected.GET(
-		"/endpoints/:id/monitoring",
-		monitoringHandler.GetMonitoring,
+			"/endpoints/:id/monitoring",
+			monitoringHandler.GetMonitoring,
 		)
 		protected.PUT(
 			"/endpoints/:id",
@@ -163,6 +163,11 @@ func SetupRouter(
 		dashboard.GET(
 			"/dashboard/history",
 			dashboardHandler.GetHistory,
+		)
+
+		dashboard.GET(
+			"/dashboard/monitoring",
+			dashboardHandler.GetMonitoring,
 		)
 	}
 

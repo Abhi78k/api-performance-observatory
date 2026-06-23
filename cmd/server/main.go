@@ -50,7 +50,7 @@ func main() {
 	incidentService := services.NewIncidentService(incidentRepo)
 	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
-	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo)
+	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo, monitoringRepo)
 	go schedulerService.Start()
 
 	authHandler := handlers.NewAuthHandler(authService)

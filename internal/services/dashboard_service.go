@@ -1,6 +1,8 @@
 package services
 
 import (
+	"time"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
@@ -10,18 +12,21 @@ type DashboardService struct {
 	endpointRepo    *repositories.EndpointRepository
 	healthCheckRepo *repositories.HealthCheckRepository
 	incidentRepo    *repositories.IncidentRepository
+	monitoringRepo  *repositories.MonitoringRepository
 }
 
 func NewDashboardService(
 	endpointRepo *repositories.EndpointRepository,
 	healthCheckRepo *repositories.HealthCheckRepository,
 	incidentRepo *repositories.IncidentRepository,
+	monitoringRepo *repositories.MonitoringRepository,
 ) *DashboardService {
 
 	return &DashboardService{
 		endpointRepo:    endpointRepo,
 		healthCheckRepo: healthCheckRepo,
 		incidentRepo:    incidentRepo,
+		monitoringRepo:  monitoringRepo,
 	}
 }
 
@@ -37,9 +42,11 @@ func (s *DashboardService) GetOverview() (
 	}
 
 	totalEndpoints := len(endpoints)
+	monitoredEndpoints := 0
 
 	healthyCount := 0
 	unhealthyCount := 0
+	duration := 0.0
 
 	for _, endpoint := range endpoints {
 		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(endpoint.ID)
@@ -53,9 +60,25 @@ func (s *DashboardService) GetOverview() (
 		} else {
 			unhealthyCount++
 		}
+
+		monitoring, err :=
+			s.monitoringRepo.GetByEndpointID(
+				endpoint.ID,
+			)
+
+		if err == nil {
+			duration =
+				time.Since(
+					monitoring.MonitoringStartedAt,
+				).Hours() / 24
+		}
+
+		if duration != 0.0 {
+			monitoredEndpoints++
+		}
 	}
 
-	response := map[string]any{"totalEndpoints": totalEndpoints, "healthy_count": healthyCount, "unhealthyCount": unhealthyCount}
+	response := map[string]any{"totalEndpoints": totalEndpoints, "healthy_count": healthyCount, "unhealthyCount": unhealthyCount, "monitored_endpoints": monitoredEndpoints}
 
 	return response, nil
 }
@@ -76,6 +99,7 @@ func (s *DashboardService) GetStatus() (
 	for _, endpoint := range endpoints {
 
 		status := "unknown"
+		duration := 0.0
 
 		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(endpoint.ID)
 
@@ -87,12 +111,25 @@ func (s *DashboardService) GetStatus() (
 			}
 		}
 
+		monitoring, err :=
+			s.monitoringRepo.GetByEndpointID(
+				endpoint.ID,
+			)
+
+		if err == nil {
+			duration =
+				time.Since(
+					monitoring.MonitoringStartedAt,
+				).Hours() / 24
+		}
+
 		result = append(
 			result,
 			dto.DashboardStatusResponse{
-				EndpointID:   endpoint.ID,
-				EndpointName: endpoint.Name,
-				Status:       status,
+				EndpointID:             endpoint.ID,
+				EndpointName:           endpoint.Name,
+				Status:                 status,
+				MonitoringDurationDays: duration,
 			},
 		)
 	}
@@ -182,4 +219,42 @@ func (s *DashboardService) GetHistory() (
 		"30d",
 		checks,
 	), nil
+}
+
+func (s *DashboardService) GetMonitoring() (
+	[]dto.DashboardMonitoringResponse,
+	error,
+) {
+
+	endpoints, err := s.endpointRepo.GetAllEndpoints()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []dto.DashboardMonitoringResponse
+
+	for _, endpoint := range endpoints {
+
+		monitoring, err := s.monitoringRepo.GetByEndpointID(
+			endpoint.ID,
+		)
+
+		if err != nil {
+			continue
+		}
+
+		result = append(
+			result,
+			dto.DashboardMonitoringResponse{
+				EndpointID:          endpoint.ID,
+				EndpointName:        endpoint.Name,
+				MonitoringStartedAt: monitoring.MonitoringStartedAt,
+				MonitoringDurationDays: time.Since(
+					monitoring.MonitoringStartedAt,
+				).Hours() / 24,
+			},
+		)
+	}
+
+	return result, nil
 }

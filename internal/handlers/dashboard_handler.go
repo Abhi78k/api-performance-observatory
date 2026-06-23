@@ -112,3 +112,17 @@ func (h *DashboardHandler) GetHistory(c *gin.Context) {
 
 	c.JSON(http.StatusOK, data)
 }
+
+func (h *DashboardHandler) GetMonitoring(c *gin.Context) {
+
+	data, err := h.dashboadService.GetMonitoring()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+}

@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/Abhi78k/api-performance-observatory/internal/stats"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,26 +28,20 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 
 	endpointID, err := strconv.ParseUint(idParam, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid endpoint id",
-		})
+		utils.BadRequest(c, "Invalid endpoint ID.")
 		return
 	}
 
 	// Fetch all health checks for the service
 	checks, err := h.healthCheckService.GetByEndpointID((uint(endpointID)))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "failed to fetch health checks",
-		})
+		utils.Internal(c, "Failed to fetch health checks.")
 		return
 	}
 
 	// Optional: return 404 if no checks exist
 	if len(checks) == 0 {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "no health checks found for this endpoint",
-		})
+		utils.NotFound(c, "No health checks found for this endpoint.")
 		return
 	}
 
@@ -55,5 +49,5 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 	stats := stats.CalculateStats(checks)
 
 	// Return statistics as JSON
-	c.JSON(http.StatusOK, stats)
+	utils.OK(c, stats)
 }

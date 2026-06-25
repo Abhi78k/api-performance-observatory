@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,31 +32,23 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
-		c.JSON(400, gin.H{
-			"error": "invalid request body.",
-		})
+		utils.BadRequest(c, err.Error())
 		return
 	}
 
 	if req.Email == "" || req.Password == "" {
-		c.JSON(400, gin.H{
-			"error": "email and password are required.",
-		})
+		utils.BadRequest(c, "Email and password are required.")
 		return
 	}
 
 	err = h.authService.Register(req.Email, req.Password)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		utils.BadRequest(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{
-		"message": "user created.",
-	})
+	utils.Created(c, "User created successfully.")
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
@@ -66,29 +57,23 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&req)
 
 	if err != nil {
-		c.JSON(400, gin.H{
-			"message": "invalid request body.",
-		})
+		utils.BadRequest(c, "Invalid request body.")
 		return
 	}
 
 	if req.Email == "" || req.Password == "" {
-		c.JSON(400, gin.H{
-			"error": "email and password are required.",
-		})
+		utils.BadRequest(c, "Email and password are required.")
 		return
 	}
 
 	accessToken, err := h.authService.Login(req.Email, req.Password)
 
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
-		})
+		utils.Unauthorized(c, "Invalid credentials.")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.OK(c, gin.H{
 		"access_token": accessToken,
 	})
 }
@@ -97,31 +82,25 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 	userID, exists := c.Get("UserID")
 
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "user not found.",
-		})
+		utils.Unauthorized(c, "User not found.")
 		return
 	}
 
 	uid, ok := userID.(uint)
 
 	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "invalid user.",
-		})
+		utils.Unauthorized(c, "Invalid user.")
 		return
 	}
 
 	user, err := h.authService.GetUserByID(uid)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found.",
-		})
+		utils.NotFound(c, "User not found.")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
+	utils.OK(c, gin.H{
 		"id":    user.ID,
 		"email": user.Email,
 	})

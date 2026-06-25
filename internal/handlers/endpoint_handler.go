@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -37,9 +36,7 @@ func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 	var req CreateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request",
-		})
+		utils.BadRequest(c, "Invalid request.")
 		return
 	}
 
@@ -53,13 +50,11 @@ func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, endpoint)
+	utils.Created(c, endpoint)
 }
 
 func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
@@ -69,13 +64,11 @@ func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 	endpoints, err := h.endpointService.GetEndpoints(userID)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, endpoints)
+	utils.OK(c, endpoints)
 }
 
 func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
@@ -89,13 +82,11 @@ func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "endpoint not found",
-		})
+		utils.NotFound(c, "Endpoint not found.")
 		return
 	}
 
-	c.JSON(http.StatusOK, endpoint)
+	utils.OK(c, endpoint)
 }
 
 func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
@@ -106,9 +97,7 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 	var req UpdateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid request body",
-		})
+		utils.BadRequest(c, "Invalid request body.")
 		return
 	}
 
@@ -121,13 +110,11 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "endpoint not found",
-		})
+		utils.NotFound(c, "Endpoint not found.")
 		return
 	}
 
-	c.JSON(http.StatusOK, endpoint)
+	utils.OK(c, endpoint)
 }
 
 func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
@@ -141,13 +128,9 @@ func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "endpoint not found",
-		})
+		utils.NotFound(c, "Endpoint not found.")
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "endpoint deleted successfully",
-	})
+	utils.OK(c, "Endpoint deleted successfully.")
 }

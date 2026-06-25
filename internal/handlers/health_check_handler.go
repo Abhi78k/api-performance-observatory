@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,9 +32,7 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 	checks, err := h.healthCheckService.GetAll()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
@@ -53,7 +51,7 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 			},
 		)
 	}
-	c.JSON(http.StatusOK, response)
+	utils.OK(c, response)
 }
 
 func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
@@ -62,18 +60,14 @@ func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 
 	id, err := strconv.ParseUint(endpointID, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid endpoint id",
-		})
+		utils.BadRequest(c, "Invalid endpoint ID.")
 		return
 	}
 
 	checks, err := h.healthCheckService.GetByEndpointID(uint(id))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
@@ -92,5 +86,5 @@ func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 			},
 		)
 	}
-	c.JSON(http.StatusOK, response)
+	utils.OK(c, response)
 }

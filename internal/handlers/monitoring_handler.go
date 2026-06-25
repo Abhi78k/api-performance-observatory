@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,7 +12,7 @@ type MonitoringHandler struct {
 	monitoringService *services.MonitoringService
 }
 
-func NewMonitoringHandler(monitoringService *services.MonitoringService,) *MonitoringHandler {
+func NewMonitoringHandler(monitoringService *services.MonitoringService) *MonitoringHandler {
 	return &MonitoringHandler{
 		monitoringService: monitoringService,
 	}
@@ -28,10 +28,7 @@ func (h *MonitoringHandler) GetMonitoring(
 	)
 
 	if err != nil {
-		c.JSON(
-			http.StatusBadRequest,
-			gin.H{"error": "invalid endpoint id"},
-		)
+		utils.BadRequest(c, "Invalid endpoint ID.")
 		return
 	}
 
@@ -41,12 +38,9 @@ func (h *MonitoringHandler) GetMonitoring(
 		)
 
 	if err != nil {
-		c.JSON(
-			http.StatusNotFound,
-			gin.H{"error": "monitoring record not found"},
-		)
+		utils.NotFound(c, "Monitoring record not found.")
 		return
 	}
 
-	c.JSON(http.StatusOK, monitoring)
+	utils.OK(c, monitoring)
 }

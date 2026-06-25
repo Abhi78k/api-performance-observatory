@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,9 +24,7 @@ func (h *IncidentHandler) ListIncidents(c *gin.Context) {
 	incidents, err := h.incidentService.GetAllIncidents()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
@@ -45,7 +43,7 @@ func (h *IncidentHandler) ListIncidents(c *gin.Context) {
 		)
 	}
 
-	c.JSON(http.StatusOK, response)
+	utils.OK(c, response)
 }
 
 func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
@@ -55,18 +53,14 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 	incidentID, err := strconv.ParseUint(id, 10, 64)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid incident ID.",
-		})
+		utils.BadRequest(c, "Invalid incident ID.")
 		return
 	}
 
 	incident, err := h.incidentService.GetIncidentByID(uint(incidentID))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
@@ -78,7 +72,7 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 		IsResolved: incident.IsResolved,
 	}
 
-	c.JSON(http.StatusOK, response)
+	utils.OK(c, response)
 }
 
 func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
@@ -86,13 +80,11 @@ func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
 	incidents, err := h.incidentService.GetActiveIncidents()
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, incidents)
+	utils.OK(c, incidents)
 }
 
 func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
@@ -104,20 +96,16 @@ func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid endpoint ID.",
-		})
+		utils.BadRequest(c, "Invalid endpoint ID.")
 		return
 	}
 
 	incidents, err := h.incidentService.GetActiveIncidentByEndpointID(uint(id))
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		utils.Internal(c, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, incidents)
+	utils.OK(c, incidents)
 }

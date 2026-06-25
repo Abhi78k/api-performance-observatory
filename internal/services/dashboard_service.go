@@ -31,14 +31,14 @@ func NewDashboardService(
 }
 
 func (s *DashboardService) GetOverview() (
-	map[string]interface{},
+	dto.DashboardOverviewResponse,
 	error,
 ) {
 
 	endpoints, err := s.endpointRepo.GetAllEndpoints()
 
 	if err != nil {
-		return nil, err
+		return dto.DashboardOverviewResponse{}, err
 	}
 
 	totalEndpoints := len(endpoints)
@@ -52,7 +52,7 @@ func (s *DashboardService) GetOverview() (
 		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(endpoint.ID)
 
 		if err != nil {
-			return nil, err
+			return dto.DashboardOverviewResponse{}, err
 		}
 
 		if latestCheck.Success {
@@ -78,9 +78,12 @@ func (s *DashboardService) GetOverview() (
 		}
 	}
 
-	response := map[string]any{"totalEndpoints": totalEndpoints, "healthy_count": healthyCount, "unhealthyCount": unhealthyCount, "monitored_endpoints": monitoredEndpoints}
-
-	return response, nil
+	return dto.DashboardOverviewResponse{
+		TotalEndpoints:     totalEndpoints,
+		HealthyCount:       healthyCount,
+		UnhealthyCount:     unhealthyCount,
+		MonitoredEndpoints: monitoredEndpoints,
+	}, nil
 }
 
 func (s *DashboardService) GetStatus() (
@@ -167,7 +170,7 @@ func (s *DashboardService) GetSuccessRate() (
 	checks, err := s.healthCheckRepo.GetAll()
 
 	if err != nil {
-		return dto.SuccessRateResponse{}, nil
+		return dto.SuccessRateResponse{}, err
 	}
 
 	service := NewSuccessRateService()
@@ -183,7 +186,7 @@ func (s *DashboardService) GetUptime() (
 	incidents, err := s.incidentRepo.GetAllIncidents()
 
 	if err != nil {
-		return dto.UptimeReportResponse{}, nil
+		return dto.UptimeReportResponse{}, err
 	}
 
 	incidentStats := NewIncidentStatsService()
@@ -203,7 +206,7 @@ func (s *DashboardService) GetHistory() (
 	checks, err := s.healthCheckRepo.GetAll()
 
 	if err != nil {
-		return dto.HistoricalReportResponse{}, nil
+		return dto.HistoricalReportResponse{}, err
 	}
 
 	performance := NewPerformanceStatsService()

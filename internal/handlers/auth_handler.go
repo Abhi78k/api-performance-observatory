@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"net/http"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/Abhi78k/api-performance-observatory/internal/utils"
@@ -17,6 +19,21 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	}
 }
 
+// Register godoc
+//
+// @Summary Register a new user
+// @Description Creates a new user account.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+//
+// @Param request body dto.RegisterRequest true "Registration details"
+//
+// @Success 201 {object} dto.MessageResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 400 {object} utils.ValidationErrorResponse
+//
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req dto.RegisterRequest
 
@@ -39,9 +56,24 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	utils.Created(c, "User created successfully.")
+	utils.Message(c, http.StatusCreated, "User created successfully.")
 }
 
+// Login godoc
+//
+// @Summary Authenticate user
+// @Description Authenticates a user and returns a JWT access token.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+//
+// @Param request body dto.LoginRequest true "Login credentials"
+//
+// @Success 200 {object} dto.LoginSuccessResponse
+// @Failure 400 {object} utils.ValidationErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+//
+// @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
@@ -64,11 +96,26 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, gin.H{
-		"access_token": accessToken,
+	utils.OK(c, dto.LoginResponse{
+		AccessToken: accessToken,
 	})
 }
 
+// GetMe godoc
+//
+// @Summary Get current user
+// @Description Returns the currently authenticated user.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+//
+// @Security BearerAuth
+//
+// @Success 200 {object} dto.UserSuccessResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+//
+// @Router /auth/me [get]
 func (h *AuthHandler) GetMe(c *gin.Context) {
 	userID, exists := c.Get("UserID")
 
@@ -91,8 +138,8 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, gin.H{
-		"id":    user.ID,
-		"email": user.Email,
+	utils.OK(c, dto.UserResponse{
+		ID:    user.ID,
+		Email: user.Email,
 	})
 }

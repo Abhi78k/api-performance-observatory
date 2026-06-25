@@ -18,6 +18,24 @@ func NewMonitoringHandler(monitoringService *services.MonitoringService) *Monito
 	}
 }
 
+// GetMonitoring godoc
+//
+// @Summary Get monitoring information
+// @Description Returns monitoring information for an endpoint.
+// @Tags Monitoring
+// @Accept json
+// @Produce json
+//
+// @Security BearerAuth
+//
+// @Param id path int true "Endpoint ID"
+//
+// @Success 200 {object} dto.MonitoringSuccessResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+//
+// @Router /endpoints/{id}/monitoring [get]
 func (h *MonitoringHandler) GetMonitoring(
 	c *gin.Context,
 ) {

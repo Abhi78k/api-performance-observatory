@@ -7,30 +7,30 @@ import (
 )
 
 func Success(c *gin.Context, status int, data any) {
-	c.JSON(status, gin.H{
-		"success": true,
-		"data":    data,
+	c.JSON(status, SuccessResponse{
+		Success: true,
+		Data:    data,
 	})
 }
 
 func Message(c *gin.Context, status int, message string) {
-	c.JSON(status, gin.H{
-		"success": true,
-		"message": message,
+	c.JSON(status, SuccessResponse{
+		Success: true,
+		Message: message,
 	})
 }
 
 func Error(c *gin.Context, status int, err string) {
-	c.JSON(status, gin.H{
-		"success": false,
-		"error":   err,
+	c.JSON(status, ErrorResponse{
+		Success: false,
+		Error:   err,
 	})
 }
 
 func ValidationError(c *gin.Context, errors map[string]string) {
-	c.JSON(http.StatusBadRequest, gin.H{
-		"success": false,
-		"errors":  errors,
+	c.JSON(http.StatusBadRequest, ValidationErrorResponse{
+		Success: true,
+		Errors:  errors,
 	})
 }
 

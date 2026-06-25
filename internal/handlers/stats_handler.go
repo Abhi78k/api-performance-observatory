@@ -20,7 +20,25 @@ func NewStatsHandler(healthCheckService *services.HealthCheckService) *StatsHand
 	}
 }
 
-// GET /services/:id/stats
+// GetEndpointStats godoc
+//
+// @Summary Get endpoint statistics
+// @Description Returns aggregated statistics calculated from all health checks for an endpoint.
+// @Tags Statistics
+// @Accept json
+// @Produce json
+//
+// @Security BearerAuth
+//
+// @Param id path int true "Endpoint ID"
+//
+// @Success 200 {object} dto.EndpointStatsResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+//
+// @Router /endpoints/{id}/stats [get]
 func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 
 	// Get endpoint ID from URL
@@ -32,7 +50,7 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 		return
 	}
 
-	// Fetch all health checks for the service
+	// Fetch all health checks for the endpoints
 	checks, err := h.healthCheckService.GetByEndpointID((uint(endpointID)))
 	if err != nil {
 		utils.Internal(c, "Failed to fetch health checks.")

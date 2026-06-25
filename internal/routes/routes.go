@@ -8,6 +8,8 @@ import (
 	"github.com/Abhi78k/api-performance-observatory/internal/middleware"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func SetupRouter(
@@ -124,7 +126,7 @@ func SetupRouter(
 	}
 
 	healthCheck := router.Group("/healthchecks")
-	protected.Use(middleware.AuthMiddleware(cfg))
+	healthCheck.Use(middleware.AuthMiddleware(cfg))
 
 	{
 		healthCheck.GET(
@@ -139,7 +141,7 @@ func SetupRouter(
 	}
 
 	incidents := router.Group("/incidents")
-	protected.Use(middleware.AuthMiddleware(cfg))
+	incidents.Use(middleware.AuthMiddleware(cfg))
 
 	{
 		incidents.GET(
@@ -202,6 +204,11 @@ func SetupRouter(
 			dashboardHandler.GetMonitoring,
 		)
 	}
+
+	router.GET(
+		"/swagger/*any",
+		ginSwagger.WrapHandler(swaggerFiles.Handler),
+	)
 
 	return router
 }

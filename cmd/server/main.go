@@ -11,8 +11,19 @@ import (
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 	"github.com/Abhi78k/api-performance-observatory/internal/routes"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
+	_ "github.com/Abhi78k/api-performance-observatory/docs"
 )
 
+// @title API Performance Observatory API
+// @version 1.0
+// @description Backend API for monitoring HTTP endpoints.
+
+// @host localhost:8080
+// @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 
 	logger.Init()

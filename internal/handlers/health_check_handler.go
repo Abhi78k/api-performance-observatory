@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"strconv"
-	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -13,21 +13,27 @@ type HealthCheckHandler struct {
 	healthCheckService *services.HealthCheckService
 }
 
-type HealthCheckResponse struct {
-	ID           uint `gorm:"primaryKey"`
-	EndpointID   uint
-	StatusCode   int
-	ResponseTime int64
-	Success      bool
-	CheckedAt    time.Time
-}
-
 func NewHealthCheckHandler(healthCheckService *services.HealthCheckService) *HealthCheckHandler {
 	return &HealthCheckHandler{
 		healthCheckService: healthCheckService,
 	}
 }
 
+// GetAllHealthChecks godoc
+//
+// @Summary List all health checks
+// @Description Returns all recorded health checks.
+// @Tags Health Checks
+// @Accept json
+// @Produce json
+//
+// @Security BearerAuth
+//
+// @Success 200 {object} dto.HealthCheckListResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+//
+// @Router /healthchecks [get]
 func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 	checks, err := h.healthCheckService.GetAll()
 
@@ -36,24 +42,27 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 		return
 	}
 
-	response := make([]HealthCheckResponse, 0, len(checks))
-
-	for _, healthcheck := range checks {
-		response = append(
-			response,
-			HealthCheckResponse{
-				ID:           healthcheck.ID,
-				EndpointID:   healthcheck.EndpointID,
-				StatusCode:   healthcheck.StatusCode,
-				ResponseTime: healthcheck.ResponseTime,
-				Success:      healthcheck.Success,
-				CheckedAt:    healthcheck.CheckedAt,
-			},
-		)
-	}
-	utils.OK(c, response)
+	utils.OK(c, dto.ToHealthCheckResponses(checks))
 }
 
+// GetByEndpointID godoc
+//
+// @Summary Get health checks for an endpoint
+// @Description Returns all health checks belonging to a specific endpoint.
+// @Tags Health Checks
+// @Accept json
+// @Produce json
+//
+// @Security BearerAuth
+//
+// @Param id path int true "Endpoint ID"
+//
+// @Success 200 {object} dto.HealthCheckListResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 401 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+//
+// @Router /healthchecks/{id} [get]
 func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 
 	endpointID := c.Param("id")
@@ -71,20 +80,5 @@ func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 		return
 	}
 
-	response := make([]HealthCheckResponse, 0, len(checks))
-
-	for _, healthcheck := range checks {
-		response = append(
-			response,
-			HealthCheckResponse{
-				ID:           healthcheck.ID,
-				EndpointID:   healthcheck.EndpointID,
-				StatusCode:   healthcheck.StatusCode,
-				ResponseTime: healthcheck.ResponseTime,
-				Success:      healthcheck.Success,
-				CheckedAt:    healthcheck.CheckedAt,
-			},
-		)
-	}
-	utils.OK(c, response)
+	utils.OK(c, dto.ToHealthCheckResponses(checks))
 }

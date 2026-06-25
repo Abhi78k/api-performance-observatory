@@ -21,7 +21,7 @@ func Load() *Config {
 	err := godotenv.Load()
 
 	if err != nil {
-		log.Fatal("error loading .env")
+		log.Fatalf("error loading .env: %v", err)
 	}
 
 	return &Config{

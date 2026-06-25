@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/config"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -12,7 +11,6 @@ import (
 var DB *gorm.DB
 
 func ConnectDB(cfg *config.Config) (*gorm.DB, error) {
-	godotenv.Load()
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",

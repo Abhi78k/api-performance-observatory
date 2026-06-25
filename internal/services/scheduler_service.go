@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -37,7 +38,7 @@ func ShouldCheck(endpoint models.Endpoint) bool {
 	return time.Now().After(nextCheck)
 }
 
-func (s *SchedulerService) Start() {
+func (s *SchedulerService) Start(ctx context.Context) {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
@@ -58,7 +59,17 @@ func (s *SchedulerService) Start() {
 				"error",
 				err,
 			)
-			<-ticker.C
+			select {
+
+			case <-ctx.Done():
+
+				logger.Info("Scheduler stopped.")
+
+				return
+
+			case <-ticker.C:
+
+			}
 			continue
 		}
 
@@ -117,6 +128,16 @@ func (s *SchedulerService) Start() {
 
 		logger.Info("Monitoring cycle completed.")
 
-		<-ticker.C
+		select {
+
+		case <-ctx.Done():
+
+			logger.Info("Scheduler stopped.")
+
+			return
+
+		case <-ticker.C:
+
+		}
 	}
 }

@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	_ "github.com/Abhi78k/api-performance-observatory/docs"
 	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
@@ -11,7 +17,6 @@ import (
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 	"github.com/Abhi78k/api-performance-observatory/internal/routes"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
-	_ "github.com/Abhi78k/api-performance-observatory/docs"
 )
 
 // @title API Performance Observatory API
@@ -75,7 +80,10 @@ func main() {
 	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
 	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo, monitoringRepo)
-	go schedulerService.Start()
+
+	appCtx, stop := context.WithCancel(context.Background())
+	defer stop()
+	go schedulerService.Start(appCtx)
 
 	authHandler := handlers.NewAuthHandler(authService)
 	endpointHandler := handlers.NewEndpointHandler(endpointService)
@@ -87,73 +95,55 @@ func main() {
 
 	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler, dashboardHandler)
 
-	if err := router.Run(":8080"); err != nil {
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
+	go func() {
+
+		logger.Info("Server started on :8080")
+
+		if err := server.ListenAndServe(); err != nil &&
+			err != http.ErrServerClosed {
+
+			logger.Error(
+				"Server failed",
+				"error",
+				err,
+			)
+		}
+
+	}()
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(
+		quit,
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+
+	<-quit
+
+	logger.Info("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+
 		logger.Error(
-			"Failed to start server",
+			"Server shutdown failed",
 			"error",
 			err,
 		)
+
+		os.Exit(1)
 	}
 
-	// // Handlers
-	// endpointHandler := handlers.EndpointHandler{
-	// 	DB: db,
-	// }
-
-	// // Router
-	// r := gin.Default()
-
-	// // Root route
-	// r.GET("/", func(c *gin.Context) {
-	// 	c.JSON(200, gin.H{
-	// 		"message": "API Observatory",
-	// 	})
-	// })
-
-	// // -------------------
-	// // Public Auth Routes
-	// // -------------------
-	// authRoutes := r.Group("/auth")
-	// {
-	// 	authRoutes.POST("/register", handlers.Register)
-	// 	authRoutes.POST("/login", handlers.Login)
-	// }
-
-	// // -------------------
-	// // Protected Auth Routes
-	// // -------------------
-	// protectedAuth := r.Group("/auth")
-	// protectedAuth.Use(middleware.AuthMiddleware())
-	// {
-	// 	protectedAuth.GET("/me", handlers.Me)
-	// 	protectedAuth.POST("/refresh", handlers.Refresh)
-	// 	protectedAuth.POST("/logout", handlers.Logout)
-
-	// 	protectedAuth.GET("/profile", func(c *gin.Context) {
-	// 		userID, _ := c.Get("userID")
-
-	// 		c.JSON(200, gin.H{
-	// 			"user_id": userID,
-	// 		})
-	// 	})
-	// }
-
-	// // -------------------
-	// // Protected Endpoint Routes
-	// // -------------------
-	// endpoints := r.Group("/endpoints")
-	// endpoints.Use(middleware.AuthMiddleware())
-	// {
-	// 	endpoints.POST("", endpointHandler.CreateEndpoint)
-	// 	endpoints.GET("", endpointHandler.GetEndpoints)
-	// 	endpoints.GET("/:id", endpointHandler.GetEndpoint)
-	// 	endpoints.PUT("/:id", endpointHandler.UpdateEndpoint)
-	// 	endpoints.DELETE("/:id", endpointHandler.DeleteEndpoint)
-	// }
-
-	// log.Println("Server running on :8080")
-
-	// if err := r.Run(":8080"); err != nil {
-	// 	log.Fatal(err)
-	// }
+	logger.Info("Server stopped gracefully.")
+	stop()
 }

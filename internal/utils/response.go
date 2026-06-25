@@ -27,6 +27,13 @@ func Error(c *gin.Context, status int, err string) {
 	})
 }
 
+func ValidationError(c *gin.Context, errors map[string]string) {
+	c.JSON(http.StatusBadRequest, gin.H{
+		"success": false,
+		"errors":  errors,
+	})
+}
+
 func OK(c *gin.Context, data any) {
 	Success(c, http.StatusOK, data)
 }

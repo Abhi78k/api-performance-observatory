@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -8,18 +9,6 @@ import (
 
 type EndpointHandler struct {
 	endpointService *services.EndpointService
-}
-
-type CreateEndpointRequest struct {
-	Name           string `json:"name"`
-	URL            string `json:"url"`
-	ExpectedStatus int    `json:"expected_status"`
-}
-
-type UpdateEndpointRequest struct {
-	Name           string `json:"name"`
-	URL            string `json:"url"`
-	ExpectedStatus int    `json:"expected_status"`
 }
 
 func NewEndpointHandler(
@@ -33,7 +22,7 @@ func NewEndpointHandler(
 
 func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 
-	var req CreateEndpointRequest
+	var req dto.CreateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "Invalid request.")
@@ -94,7 +83,7 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 	id := c.Param("id")
 	userID := c.MustGet("UserID").(uint)
 
-	var req UpdateEndpointRequest
+	var req dto.UpdateEndpointRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.BadRequest(c, "Invalid request body.")

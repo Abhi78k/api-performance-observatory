@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/internal/services"
 	"github.com/Abhi78k/api-performance-observatory/internal/utils"
 	"github.com/gin-gonic/gin"
@@ -10,16 +11,6 @@ type AuthHandler struct {
 	authService *services.AuthService
 }
 
-type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	return &AuthHandler{
 		authService: authService,
@@ -27,7 +18,7 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
-	var req RegisterRequest
+	var req dto.RegisterRequest
 
 	err := c.ShouldBindJSON(&req)
 
@@ -36,8 +27,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	if req.Email == "" || req.Password == "" {
-		utils.BadRequest(c, "Email and password are required.")
+	if err := utils.Validate.Struct(req); err != nil {
+		utils.ValidationError(c, utils.FormatValidationErrors(err))
 		return
 	}
 
@@ -52,7 +43,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 }
 
 func (h *AuthHandler) Login(c *gin.Context) {
-	var req LoginRequest
+	var req dto.LoginRequest
 
 	err := c.ShouldBindJSON(&req)
 
@@ -61,8 +52,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	if req.Email == "" || req.Password == "" {
-		utils.BadRequest(c, "Email and password are required.")
+	if err := utils.Validate.Struct(req); err != nil {
+		utils.ValidationError(c, utils.FormatValidationErrors(err))
 		return
 	}
 

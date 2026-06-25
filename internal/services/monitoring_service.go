@@ -3,9 +3,10 @@ package services
 import (
 	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/dto"
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
-	"github.com/Abhi78k/api-performance-observatory/internal/dto"
 )
 
 type MonitoringService struct {
@@ -29,7 +30,18 @@ func (s *MonitoringService) StartMonitoring(
 		MonitoringStartedAt: time.Now(),
 	}
 
-	return s.monitoringRepo.Create(monitoring)
+	err := s.monitoringRepo.Create(monitoring)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info(
+		"Monitoring started",
+		"endpoint_id", endpointID,
+	)
+
+	return nil
 }
 
 func (s *MonitoringService) GetMonitoringRecord(
@@ -42,9 +54,9 @@ func (s *MonitoringService) GetMonitoringRecord(
 }
 
 func (s *MonitoringService) GetByEndpointID(
-    endpointID uint,
+	endpointID uint,
 ) (*models.Monitoring, error) {
-    return s.monitoringRepo.GetByEndpointID(endpointID)
+	return s.monitoringRepo.GetByEndpointID(endpointID)
 }
 
 func (s *MonitoringService) GetMonitoringResponse(

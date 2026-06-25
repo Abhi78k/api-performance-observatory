@@ -1,10 +1,10 @@
 package services
 
 import (
-	"log"
 	"sync"
 	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 )
@@ -41,7 +41,7 @@ func (s *SchedulerService) Start() {
 	ticker := time.NewTicker(time.Minute)
 	defer ticker.Stop()
 
-	log.Println("Scheduler started...")
+	logger.Info("Scheduler started.")
 
 	for {
 		// NOTE:
@@ -53,7 +53,11 @@ func (s *SchedulerService) Start() {
 		endpoints, err := s.EndpointRepo.GetAllEndpoints()
 
 		if err != nil {
-			log.Println("failed to load endpoints:", err)
+			logger.Error(
+				"Failed to load endpoints",
+				"error",
+				err,
+			)
 			<-ticker.C
 			continue
 		}
@@ -78,13 +82,18 @@ func (s *SchedulerService) Start() {
 					wg.Done()
 				}()
 
-				log.Printf("Checking endpoint: %s", ep.Name)
+				logger.Info(
+					"Running health check",
+					"endpoint_id", ep.ID,
+					"name", ep.Name,
+				)
 
 				if err := s.HealthCheckService.CheckEndpoint(ep); err != nil {
-					log.Printf(
-						"health check failed for endpoint %d: %v",
-						ep.ID,
-						err,
+					logger.Error(
+						"Health check failed",
+						"endpoint_id", ep.ID,
+						"name", ep.Name,
+						"error", err,
 					)
 					return
 				}
@@ -93,10 +102,11 @@ func (s *SchedulerService) Start() {
 				ep.LastCheckedAt = &now
 
 				if err := s.EndpointRepo.Update(&ep); err != nil {
-					log.Printf(
-						"failed to update last_checked_at for endpoint %d: %v",
-						ep.ID,
-						err,
+					logger.Error(
+						"Failed to update last_checked_at",
+						"endpoint_id", ep.ID,
+						"name", ep.Name,
+						"error", err,
 					)
 				}
 
@@ -105,7 +115,7 @@ func (s *SchedulerService) Start() {
 
 		wg.Wait()
 
-		log.Println("Monitoring cycle completed")
+		logger.Info("Monitoring cycle completed.")
 
 		<-ticker.C
 	}

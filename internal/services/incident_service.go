@@ -3,6 +3,7 @@ package services
 import (
 	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 )
@@ -28,7 +29,18 @@ func (s *IncidentService) StartIncident(
 		IsResolved: false,
 	}
 
-	return s.incidentRepo.Create(incident)
+	err := s.incidentRepo.Create(incident)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Warn(
+		"Incident created",
+		"endpoint_id", endpointID,
+	)
+
+	return nil
 }
 
 func (s *IncidentService) GetActiveIncidentByEndpointID(
@@ -55,7 +67,18 @@ func (s *IncidentService) ResolveIncident(
 	incident.ResolvedAt = &now
 	incident.IsResolved = true
 
-	return s.incidentRepo.Update(incident)
+	err := s.incidentRepo.Update(incident)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info(
+		"Incident resolved",
+		"incident_id", incident.ID,
+	)
+
+	return nil
 }
 
 func (s *IncidentService) GetAllIncidents() (

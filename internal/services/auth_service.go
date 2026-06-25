@@ -6,6 +6,7 @@ import (
 	"github.com/Abhi78k/api-performance-observatory/internal/apperrors"
 	"github.com/Abhi78k/api-performance-observatory/internal/auth"
 	"github.com/Abhi78k/api-performance-observatory/internal/config"
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 	"gorm.io/gorm"
@@ -30,6 +31,12 @@ func (s *AuthService) Register(
 	_, err := s.userRepo.GetUserByEmail(email)
 
 	if err == nil {
+		logger.Warn(
+			"Registration failed",
+			"email", email,
+			"reason", "user already exists",
+		)
+
 		return apperrors.ErrUserAlreadyExists
 	}
 
@@ -48,7 +55,19 @@ func (s *AuthService) Register(
 		Password: hashedPassword,
 	}
 
-	return s.userRepo.CreateUser(&user)
+	err = s.userRepo.CreateUser(&user)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info(
+		"User registered",
+		"user_id", user.ID,
+		"email", user.Email,
+	)
+
+	return nil
 }
 
 func (s *AuthService) Login(
@@ -68,6 +87,12 @@ func (s *AuthService) Login(
 	)
 
 	if err != nil {
+		logger.Warn(
+			"Login failed",
+			"email", email,
+			"reason", "invalid credentials",
+		)
+
 		return "", apperrors.ErrInvalidCredentials
 	}
 
@@ -76,6 +101,11 @@ func (s *AuthService) Login(
 	if err != nil {
 		return "", err
 	}
+
+	logger.Info(
+		"User logged in",
+		"user_id", user.ID,
+	)
 
 	return accessToken, nil
 }

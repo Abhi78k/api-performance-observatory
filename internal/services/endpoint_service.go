@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 )
@@ -40,6 +41,13 @@ func (s *EndpointService) CreateEndpoint(
 	if err != nil {
 		return nil, err
 	}
+
+	logger.Info(
+		"Endpoint created",
+		"endpoint_id", endpoint.ID,
+		"url", endpoint.URL,
+	)
+
 	err = s.monitoringService.StartMonitoring(
 		endpoint.ID,
 	)
@@ -90,6 +98,11 @@ func (s *EndpointService) UpdateEndpoint(
 		return nil, err
 	}
 
+	logger.Info(
+		"Endpoint updated",
+		"endpoint_id", endpoint.ID,
+	)
+
 	return endpoint, nil
 }
 
@@ -104,5 +117,16 @@ func (s *EndpointService) DeleteEndpoint(
 		return err
 	}
 
-	return s.endpointRepo.Delete(endpoint)
+	err = s.endpointRepo.Delete(endpoint)
+
+	if err != nil {
+		return err
+	}
+
+	logger.Info(
+		"Endpoint deleted",
+		"endpoint_id", endpoint.ID,
+	)
+
+	return nil
 }

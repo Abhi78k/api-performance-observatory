@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 )
@@ -30,6 +31,12 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
 	start := time.Now()
 
+	logger.Info(
+		"Running health check",
+		"endpoint_id", endpoint.ID,
+		"url", endpoint.URL,
+	)
+
 	var resp *http.Response
 	var err error
 
@@ -54,6 +61,13 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 
 	// Request failed completely
 	if err != nil {
+
+		logger.Error(
+			"Health check request failed",
+			"endpoint_id", endpoint.ID,
+			"url", endpoint.URL,
+			"error", err,
+		)
 
 		check := models.HealthCheck{
 			EndpointID:   endpoint.ID,
@@ -88,6 +102,27 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 	defer resp.Body.Close()
 
 	success := resp.StatusCode == endpoint.ExpectedStatus
+
+	if success {
+
+		logger.Info(
+			"Health check succeeded",
+			"endpoint_id", endpoint.ID,
+			"status_code", resp.StatusCode,
+			"response_time_ms", responseTime,
+		)
+
+	} else {
+
+		logger.Warn(
+			"Health check failed",
+			"endpoint_id", endpoint.ID,
+			"expected_status", endpoint.ExpectedStatus,
+			"actual_status", resp.StatusCode,
+			"response_time_ms", responseTime,
+		)
+
+	}
 
 	check := models.HealthCheck{
 		EndpointID:   endpoint.ID,

@@ -1,11 +1,12 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/config"
 	"github.com/Abhi78k/api-performance-observatory/internal/database"
 	"github.com/Abhi78k/api-performance-observatory/internal/handlers"
+	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
 	"github.com/Abhi78k/api-performance-observatory/internal/routes"
@@ -14,16 +15,23 @@ import (
 
 func main() {
 
+	logger.Init()
+
 	// Load Config
 	cfg := config.Load()
 
 	// Database
 	db, err := database.ConnectDB(cfg)
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		logger.Error(
+			"Failed to connect to database",
+			"error",
+			err,
+		)
+		os.Exit(1)
 	}
 
-	log.Println("Database connected!")
+	logger.Info("Database connected!")
 
 	// Migrations
 	err = db.AutoMigrate(
@@ -35,7 +43,12 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal("Migration failed:", err)
+		logger.Error(
+			"Migration failed",
+			"error",
+			err,
+		)
+		os.Exit(1)
 	}
 
 	authRepo := repositories.NewUserRepository(db)
@@ -64,7 +77,11 @@ func main() {
 	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler, dashboardHandler)
 
 	if err := router.Run(":8080"); err != nil {
-		log.Fatal(err)
+		logger.Error(
+			"Failed to start server",
+			"error",
+			err,
+		)
 	}
 
 	// // Handlers

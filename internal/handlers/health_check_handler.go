@@ -35,7 +35,9 @@ func NewHealthCheckHandler(healthCheckService *services.HealthCheckService) *Hea
 //
 // @Router /healthchecks [get]
 func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
-	checks, err := h.healthCheckService.GetAll()
+	ctx := c.Request.Context()
+
+	checks, err := h.healthCheckService.GetAll(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -64,6 +66,7 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 //
 // @Router /healthchecks/{id} [get]
 func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	endpointID := c.Param("id")
 
@@ -73,7 +76,7 @@ func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 		return
 	}
 
-	checks, err := h.healthCheckService.GetByEndpointID(uint(id))
+	checks, err := h.healthCheckService.GetByEndpointID(ctx, uint(id))
 
 	if err != nil {
 		utils.Internal(c, err.Error())

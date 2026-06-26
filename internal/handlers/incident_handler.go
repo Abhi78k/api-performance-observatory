@@ -35,8 +35,9 @@ func NewIncidentHandler(incidentService *services.IncidentService) *IncidentHand
 //
 // @Router /incidents [get]
 func (h *IncidentHandler) ListIncidents(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	incidents, err := h.incidentService.GetAllIncidents()
+	incidents, err := h.incidentService.GetAllIncidents(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -66,6 +67,7 @@ func (h *IncidentHandler) ListIncidents(c *gin.Context) {
 //
 // @Router /incidents/{id} [get]
 func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	id := c.Param("id")
 
@@ -76,7 +78,7 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 		return
 	}
 
-	incident, err := h.incidentService.GetIncidentByID(uint(incidentID))
+	incident, err := h.incidentService.GetIncidentByID(ctx, uint(incidentID))
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -102,8 +104,9 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 //
 // @Router /incidents/active [get]
 func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	incidents, err := h.incidentService.GetActiveIncidents()
+	incidents, err := h.incidentService.GetActiveIncidents(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -133,6 +136,7 @@ func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
 //
 // @Router /endpoints/{id}/incidents [get]
 func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	id, err := strconv.ParseUint(
 		c.Param("id"),
@@ -145,7 +149,7 @@ func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
 		return
 	}
 
-	incident, err := h.incidentService.GetActiveIncidentByEndpointID(uint(id))
+	incident, err := h.incidentService.GetActiveIncidentByEndpointID(ctx, uint(id))
 
 	if err != nil {
 		utils.Internal(c, err.Error())

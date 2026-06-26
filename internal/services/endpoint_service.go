@@ -1,6 +1,8 @@
 package services
 
 import (
+	"context"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/logger"
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/internal/repositories"
@@ -23,6 +25,7 @@ func NewEndpointService(
 }
 
 func (s *EndpointService) CreateEndpoint(
+	ctx context.Context,
 	name string,
 	url string,
 	expectedStatus int,
@@ -36,7 +39,7 @@ func (s *EndpointService) CreateEndpoint(
 		UserID:         userID,
 	}
 
-	err := s.endpointRepo.Create(endpoint)
+	err := s.endpointRepo.Create(ctx, endpoint)
 
 	if err != nil {
 		return nil, err
@@ -49,6 +52,7 @@ func (s *EndpointService) CreateEndpoint(
 	)
 
 	err = s.monitoringService.StartMonitoring(
+		ctx,
 		endpoint.ID,
 	)
 
@@ -60,21 +64,24 @@ func (s *EndpointService) CreateEndpoint(
 }
 
 func (s *EndpointService) GetEndpoints(
+	ctx context.Context,
 	userID uint,
 ) ([]models.Endpoint, error) {
 
-	return s.endpointRepo.GetAllByUserID(userID)
+	return s.endpointRepo.GetAllByUserID(ctx, userID)
 }
 
 func (s *EndpointService) GetEndpoint(
+	ctx context.Context,
 	id string,
 	userID uint,
 ) (*models.Endpoint, error) {
 
-	return s.endpointRepo.GetByID(id, userID)
+	return s.endpointRepo.GetByID(ctx, id, userID)
 }
 
 func (s *EndpointService) UpdateEndpoint(
+	ctx context.Context,
 	id string,
 	userID uint,
 	name string,
@@ -82,7 +89,7 @@ func (s *EndpointService) UpdateEndpoint(
 	expectedStatus int,
 ) (*models.Endpoint, error) {
 
-	endpoint, err := s.endpointRepo.GetByID(id, userID)
+	endpoint, err := s.endpointRepo.GetByID(ctx, id, userID)
 
 	if err != nil {
 		return nil, err
@@ -92,7 +99,7 @@ func (s *EndpointService) UpdateEndpoint(
 	endpoint.URL = url
 	endpoint.ExpectedStatus = expectedStatus
 
-	err = s.endpointRepo.Update(endpoint)
+	err = s.endpointRepo.Update(ctx, endpoint)
 
 	if err != nil {
 		return nil, err
@@ -107,17 +114,18 @@ func (s *EndpointService) UpdateEndpoint(
 }
 
 func (s *EndpointService) DeleteEndpoint(
+	ctx context.Context,
 	id string,
 	userID uint,
 ) error {
 
-	endpoint, err := s.endpointRepo.GetByID(id, userID)
+	endpoint, err := s.endpointRepo.GetByID(ctx, id, userID)
 
 	if err != nil {
 		return err
 	}
 
-	err = s.endpointRepo.Delete(endpoint)
+	err = s.endpointRepo.Delete(ctx, endpoint)
 
 	if err != nil {
 		return err

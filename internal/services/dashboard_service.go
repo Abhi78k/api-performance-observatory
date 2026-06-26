@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
@@ -30,12 +31,12 @@ func NewDashboardService(
 	}
 }
 
-func (s *DashboardService) GetOverview() (
+func (s *DashboardService) GetOverview(ctx context.Context) (
 	dto.DashboardOverviewResponse,
 	error,
 ) {
 
-	endpoints, err := s.endpointRepo.GetAllEndpoints()
+	endpoints, err := s.endpointRepo.GetAllEndpoints(ctx)
 
 	if err != nil {
 		return dto.DashboardOverviewResponse{}, err
@@ -49,7 +50,7 @@ func (s *DashboardService) GetOverview() (
 	duration := 0.0
 
 	for _, endpoint := range endpoints {
-		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(endpoint.ID)
+		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(ctx, endpoint.ID)
 
 		if err != nil {
 			return dto.DashboardOverviewResponse{}, err
@@ -63,6 +64,7 @@ func (s *DashboardService) GetOverview() (
 
 		monitoring, err :=
 			s.monitoringRepo.GetByEndpointID(
+				ctx,
 				endpoint.ID,
 			)
 
@@ -86,12 +88,12 @@ func (s *DashboardService) GetOverview() (
 	}, nil
 }
 
-func (s *DashboardService) GetStatus() (
+func (s *DashboardService) GetStatus(ctx context.Context) (
 	[]dto.DashboardStatusResponse,
 	error,
 ) {
 
-	endpoints, err := s.endpointRepo.GetAllEndpoints()
+	endpoints, err := s.endpointRepo.GetAllEndpoints(ctx)
 
 	if err != nil {
 		return nil, err
@@ -104,7 +106,7 @@ func (s *DashboardService) GetStatus() (
 		status := "unknown"
 		duration := 0.0
 
-		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(endpoint.ID)
+		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(ctx, endpoint.ID)
 
 		if err == nil {
 			if latestCheck.Success {
@@ -116,6 +118,7 @@ func (s *DashboardService) GetStatus() (
 
 		monitoring, err :=
 			s.monitoringRepo.GetByEndpointID(
+				ctx,
 				endpoint.ID,
 			)
 
@@ -139,19 +142,19 @@ func (s *DashboardService) GetStatus() (
 	return result, nil
 }
 
-func (s *DashboardService) GetRecentIncidents() (
+func (s *DashboardService) GetRecentIncidents(ctx context.Context) (
 	[]models.Incident,
 	error,
 ) {
-	return s.incidentRepo.GetRecentIncidents()
+	return s.incidentRepo.GetRecentIncidents(ctx)
 }
 
-func (s *DashboardService) GetPerformance() (
+func (s *DashboardService) GetPerformance(ctx context.Context) (
 	dto.PerformanceStatsResponse,
 	error,
 ) {
 
-	checks, err := s.healthCheckRepo.GetAll()
+	checks, err := s.healthCheckRepo.GetAll(ctx)
 
 	if err != nil {
 		return dto.PerformanceStatsResponse{}, err
@@ -162,12 +165,12 @@ func (s *DashboardService) GetPerformance() (
 	return service.CalculateStats(checks), nil
 }
 
-func (s *DashboardService) GetSuccessRate() (
+func (s *DashboardService) GetSuccessRate(ctx context.Context) (
 	dto.SuccessRateResponse,
 	error,
 ) {
 
-	checks, err := s.healthCheckRepo.GetAll()
+	checks, err := s.healthCheckRepo.GetAll(ctx)
 
 	if err != nil {
 		return dto.SuccessRateResponse{}, err
@@ -178,12 +181,12 @@ func (s *DashboardService) GetSuccessRate() (
 	return service.CalculateStats(checks), nil
 }
 
-func (s *DashboardService) GetUptime() (
+func (s *DashboardService) GetUptime(ctx context.Context) (
 	dto.UptimeReportResponse,
 	error,
 ) {
 
-	incidents, err := s.incidentRepo.GetAllIncidents()
+	incidents, err := s.incidentRepo.GetAllIncidents(ctx)
 
 	if err != nil {
 		return dto.UptimeReportResponse{}, err
@@ -198,12 +201,12 @@ func (s *DashboardService) GetUptime() (
 	), nil
 }
 
-func (s *DashboardService) GetHistory() (
+func (s *DashboardService) GetHistory(ctx context.Context) (
 	dto.HistoricalReportResponse,
 	error,
 ) {
 
-	checks, err := s.healthCheckRepo.GetAll()
+	checks, err := s.healthCheckRepo.GetAll(ctx)
 
 	if err != nil {
 		return dto.HistoricalReportResponse{}, err
@@ -224,12 +227,12 @@ func (s *DashboardService) GetHistory() (
 	), nil
 }
 
-func (s *DashboardService) GetMonitoring() (
+func (s *DashboardService) GetMonitoring(ctx context.Context) (
 	[]dto.DashboardMonitoringResponse,
 	error,
 ) {
 
-	endpoints, err := s.endpointRepo.GetAllEndpoints()
+	endpoints, err := s.endpointRepo.GetAllEndpoints(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -239,6 +242,7 @@ func (s *DashboardService) GetMonitoring() (
 	for _, endpoint := range endpoints {
 
 		monitoring, err := s.monitoringRepo.GetByEndpointID(
+			ctx,
 			endpoint.ID,
 		)
 

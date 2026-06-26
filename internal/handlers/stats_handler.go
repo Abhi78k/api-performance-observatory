@@ -40,6 +40,7 @@ func NewStatsHandler(healthCheckService *services.HealthCheckService) *StatsHand
 //
 // @Router /endpoints/{id}/stats [get]
 func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	// Get endpoint ID from URL
 	idParam := c.Param("id")
@@ -51,7 +52,7 @@ func (h *StatsHandler) GetEndpointStats(c *gin.Context) {
 	}
 
 	// Fetch all health checks for the endpoints
-	checks, err := h.healthCheckService.GetByEndpointID((uint(endpointID)))
+	checks, err := h.healthCheckService.GetByEndpointID(ctx, uint(endpointID))
 	if err != nil {
 		utils.Internal(c, "Failed to fetch health checks.")
 		return

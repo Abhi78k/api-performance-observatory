@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/apperrors"
@@ -25,10 +26,11 @@ func NewAuthService(cfg *config.Config, userRepo repositories.UserRepositoryInte
 }
 
 func (s *AuthService) Register(
+	ctx context.Context,
 	email string,
 	password string,
 ) error {
-	_, err := s.userRepo.GetUserByEmail(email)
+	_, err := s.userRepo.GetUserByEmail(ctx, email)
 
 	if err == nil {
 		logger.Warn(
@@ -55,7 +57,7 @@ func (s *AuthService) Register(
 		Password: hashedPassword,
 	}
 
-	err = s.userRepo.CreateUser(&user)
+	err = s.userRepo.CreateUser(ctx, &user)
 
 	if err != nil {
 		return err
@@ -71,11 +73,12 @@ func (s *AuthService) Register(
 }
 
 func (s *AuthService) Login(
+	ctx context.Context,
 	email string,
 	password string,
 ) (string, error) {
 
-	user, err := s.userRepo.GetUserByEmail(email)
+	user, err := s.userRepo.GetUserByEmail(ctx, email)
 
 	if err != nil {
 		return "", err
@@ -111,13 +114,15 @@ func (s *AuthService) Login(
 }
 
 func (s *AuthService) GetUserByID(
+	ctx context.Context,
 	userID uint,
 ) (*models.User, error) {
-	return s.userRepo.GetUserByID(userID)
+	return s.userRepo.GetUserByID(ctx, userID)
 }
 
 func (s *AuthService) GetMe(
+	ctx context.Context,
 	userID uint,
 ) (*models.User, error) {
-	return s.userRepo.GetUserByID(userID)
+	return s.userRepo.GetUserByID(ctx, userID)
 }

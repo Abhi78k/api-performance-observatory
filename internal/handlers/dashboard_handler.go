@@ -32,8 +32,9 @@ func NewDashboardHandler(dashboadService *services.DashboardService) *DashboardH
 //
 // @Router /dashboard/overview [get]
 func (h *DashboardHandler) GetOverview(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetOverview()
+	data, err := h.dashboadService.GetOverview(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -59,8 +60,9 @@ func (h *DashboardHandler) GetOverview(c *gin.Context) {
 //
 // @Router /dashboard/status [get]
 func (h *DashboardHandler) GetStatus(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetStatus()
+	data, err := h.dashboadService.GetStatus(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -86,8 +88,9 @@ func (h *DashboardHandler) GetStatus(c *gin.Context) {
 //
 // @Router /dashboard/incidents [get]
 func (h *DashboardHandler) GetRecentIncidents(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	incidents, err := h.dashboadService.GetRecentIncidents()
+	incidents, err := h.dashboadService.GetRecentIncidents(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -113,8 +116,9 @@ func (h *DashboardHandler) GetRecentIncidents(c *gin.Context) {
 //
 // @Router /dashboard/performance [get]
 func (h *DashboardHandler) GetPerformance(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetPerformance()
+	data, err := h.dashboadService.GetPerformance(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -140,8 +144,9 @@ func (h *DashboardHandler) GetPerformance(c *gin.Context) {
 //
 // @Router /dashboard/success-rate [get]
 func (h *DashboardHandler) GetSuccessRate(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetSuccessRate()
+	data, err := h.dashboadService.GetSuccessRate(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -167,7 +172,9 @@ func (h *DashboardHandler) GetSuccessRate(c *gin.Context) {
 //
 // @Router /dashboard/uptime [get]
 func (h *DashboardHandler) GetUptime(c *gin.Context) {
-	data, err := h.dashboadService.GetUptime()
+	ctx := c.Request.Context()
+
+	data, err := h.dashboadService.GetUptime(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -193,7 +200,9 @@ func (h *DashboardHandler) GetUptime(c *gin.Context) {
 //
 // @Router /dashboard/history [get]
 func (h *DashboardHandler) GetHistory(c *gin.Context) {
-	data, err := h.dashboadService.GetHistory()
+	ctx := c.Request.Context()
+
+	data, err := h.dashboadService.GetHistory(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -219,8 +228,9 @@ func (h *DashboardHandler) GetHistory(c *gin.Context) {
 //
 // @Router /dashboard/monitoring [get]
 func (h *DashboardHandler) GetMonitoring(c *gin.Context) {
+	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetMonitoring()
+	data, err := h.dashboadService.GetMonitoring(ctx)
 
 	if err != nil {
 		utils.Internal(c, err.Error())

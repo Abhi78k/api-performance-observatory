@@ -39,6 +39,8 @@ func NewMonitoringHandler(monitoringService *services.MonitoringService) *Monito
 func (h *MonitoringHandler) GetMonitoring(
 	c *gin.Context,
 ) {
+	ctx := c.Request.Context()
+
 	id, err := strconv.ParseUint(
 		c.Param("id"),
 		10,
@@ -52,6 +54,7 @@ func (h *MonitoringHandler) GetMonitoring(
 
 	monitoring, err :=
 		h.monitoringService.GetMonitoringResponse(
+			ctx,
 			uint(id),
 		)
 

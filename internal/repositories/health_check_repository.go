@@ -1,15 +1,18 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"gorm.io/gorm"
 )
 
 type HealthCheckRepositoryInterface interface {
-	Create(check *models.HealthCheck) error
-	GetByEndpointID(endpointID uint) ([]models.HealthCheck, error)
-	GetAll() ([]models.HealthCheck, error)
+	Create(ctx context.Context, check *models.HealthCheck) error
+	GetByEndpointID(ctx context.Context, endpointID uint) ([]models.HealthCheck, error)
+	GetAll(ctx context.Context) ([]models.HealthCheck, error)
 	GetLatestByEndpointID(
+		ctx context.Context,
 		endpointID uint,
 	) (*models.HealthCheck, error)
 }
@@ -25,37 +28,38 @@ func NewHealthCheckRepo(db *gorm.DB) *HealthCheckRepository {
 }
 
 // Create saves a health check record
-func (r *HealthCheckRepository) Create(check *models.HealthCheck) error {
-	return r.DB.Create(check).Error
+func (r *HealthCheckRepository) Create(ctx context.Context, check *models.HealthCheck) error {
+	return r.DB.WithContext(ctx).Create(check).Error
 }
 
 // GetByEndpointID returns all health checks for a endpoint
-func (r *HealthCheckRepository) GetByEndpointID(endpointID uint) ([]models.HealthCheck, error) {
+func (r *HealthCheckRepository) GetByEndpointID(ctx context.Context, endpointID uint) ([]models.HealthCheck, error) {
 
 	var checks []models.HealthCheck
 
-	err := r.DB.
+	err := r.DB.WithContext(ctx).
 		Where("endpoint_id = ?", endpointID).
 		Find(&checks).Error
 
 	return checks, err
 }
 
-func (r *HealthCheckRepository) GetAll() ([]models.HealthCheck, error) {
+func (r *HealthCheckRepository) GetAll(ctx context.Context) ([]models.HealthCheck, error) {
 	var checks []models.HealthCheck
 
-	err := r.DB.Order("checked_at DESC").Find(&checks).Error
+	err := r.DB.WithContext(ctx).Order("checked_at DESC").Find(&checks).Error
 
 	return checks, err
 }
 
 func (r *HealthCheckRepository) GetLatestByEndpointID(
+	ctx context.Context,
 	endpointID uint,
 ) (*models.HealthCheck, error) {
 
 	var check models.HealthCheck
 
-	err := r.DB.Where("endpoint_id = ?", endpointID).Order("checked_at DESC").First(&check).Error
+	err := r.DB.WithContext(ctx).Where("endpoint_id = ?", endpointID).Order("checked_at DESC").First(&check).Error
 
 	if err != nil {
 		return nil, err

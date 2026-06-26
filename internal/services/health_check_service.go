@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -23,7 +24,7 @@ func NewHealthCheckService(endpointRepo repositories.EndpointRepositoryInterface
 	}
 }
 
-func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
+func (s *HealthCheckService) CheckEndpoint(ctx context.Context, endpoint models.Endpoint) error {
 
 	client := http.Client{
 		Timeout: 10 * time.Second,
@@ -77,17 +78,19 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 			CheckedAt:    time.Now(),
 		}
 
-		err := s.HealthCheckRepo.Create(&check)
+		err := s.HealthCheckRepo.Create(ctx, &check)
 		if err != nil {
 			return err
 		}
 
 		incident, err := s.incidentService.GetActiveIncidentByEndpointID(
+			ctx,
 			endpoint.ID,
 		)
 
 		if err == nil && incident == nil {
 			err = s.incidentService.StartIncident(
+				ctx,
 				endpoint.ID,
 			)
 
@@ -132,7 +135,7 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 		CheckedAt:    time.Now(),
 	}
 
-	err = s.HealthCheckRepo.Create(&check)
+	err = s.HealthCheckRepo.Create(ctx, &check)
 
 	if err != nil {
 		return err
@@ -142,12 +145,14 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 	if !check.Success {
 
 		incident, err := s.incidentService.GetActiveIncidentByEndpointID(
+			ctx,
 			endpoint.ID,
 		)
 
 		if err == nil && incident == nil {
 
 			err = s.incidentService.StartIncident(
+				ctx,
 				endpoint.ID,
 			)
 
@@ -161,12 +166,14 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 	if check.Success {
 
 		incident, err := s.incidentService.GetActiveIncidentByEndpointID(
+			ctx,
 			endpoint.ID,
 		)
 
 		if err == nil && incident != nil {
 
 			err = s.incidentService.ResolveIncident(
+				ctx,
 				incident,
 			)
 
@@ -179,8 +186,8 @@ func (s *HealthCheckService) CheckEndpoint(endpoint models.Endpoint) error {
 	return nil
 }
 
-func (s *HealthCheckService) GetByEndpointID(endpointID uint) ([]models.HealthCheck, error) {
-	checks, err := s.HealthCheckRepo.GetByEndpointID(endpointID)
+func (s *HealthCheckService) GetByEndpointID(ctx context.Context, endpointID uint) ([]models.HealthCheck, error) {
+	checks, err := s.HealthCheckRepo.GetByEndpointID(ctx, endpointID)
 
 	if err != nil {
 		return nil, err
@@ -189,8 +196,8 @@ func (s *HealthCheckService) GetByEndpointID(endpointID uint) ([]models.HealthCh
 	return checks, nil
 }
 
-func (s *HealthCheckService) GetAll() ([]models.HealthCheck, error) {
-	checks, err := s.HealthCheckRepo.GetAll()
+func (s *HealthCheckService) GetAll(ctx context.Context) ([]models.HealthCheck, error) {
+	checks, err := s.HealthCheckRepo.GetAll(ctx)
 
 	if err != nil {
 		return nil, err
@@ -200,10 +207,12 @@ func (s *HealthCheckService) GetAll() ([]models.HealthCheck, error) {
 }
 
 func (s *HealthCheckService) GetLatestByEndpointID(
+	ctx context.Context,
 	endpointID uint,
 ) (*models.HealthCheck, error) {
 
 	return s.HealthCheckRepo.GetLatestByEndpointID(
+		ctx,
 		endpointID,
 	)
 }

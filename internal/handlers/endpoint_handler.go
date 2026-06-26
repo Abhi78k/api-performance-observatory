@@ -41,6 +41,7 @@ func NewEndpointHandler(
 //
 // @Router /endpoints [post]
 func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	var req dto.CreateEndpointRequest
 
@@ -60,6 +61,7 @@ func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 	userID := c.MustGet("UserID").(uint)
 
 	endpoint, err := h.endpointService.CreateEndpoint(
+		ctx,
 		req.Name,
 		req.URL,
 		req.ExpectedStatus,
@@ -90,10 +92,11 @@ func (h *EndpointHandler) CreateEndpoint(c *gin.Context) {
 //
 // @Router /endpoints [get]
 func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	userID := c.MustGet("UserID").(uint)
 
-	endpoints, err := h.endpointService.GetEndpoints(userID)
+	endpoints, err := h.endpointService.GetEndpoints(ctx, userID)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
@@ -121,11 +124,13 @@ func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 //
 // @Router /endpoints/{id} [get]
 func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	id := c.Param("id")
 	userID := c.MustGet("UserID").(uint)
 
 	endpoint, err := h.endpointService.GetEndpoint(
+		ctx,
 		id,
 		userID,
 	)
@@ -159,6 +164,7 @@ func (h *EndpointHandler) GetEndpoint(c *gin.Context) {
 //
 // @Router /endpoints/{id} [put]
 func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	id := c.Param("id")
 	userID := c.MustGet("UserID").(uint)
@@ -179,6 +185,7 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 	}
 
 	endpoint, err := h.endpointService.UpdateEndpoint(
+		ctx,
 		id,
 		userID,
 		req.Name,
@@ -211,11 +218,13 @@ func (h *EndpointHandler) UpdateEndpoint(c *gin.Context) {
 //
 // @Router /endpoints/{id} [delete]
 func (h *EndpointHandler) DeleteEndpoint(c *gin.Context) {
+	ctx := c.Request.Context()
 
 	id := c.Param("id")
 	userID := c.MustGet("UserID").(uint)
 
 	err := h.endpointService.DeleteEndpoint(
+		ctx,
 		id,
 		userID,
 	)

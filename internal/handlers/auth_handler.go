@@ -35,6 +35,8 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 //
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var req dto.RegisterRequest
 
 	err := c.ShouldBindJSON(&req)
@@ -49,7 +51,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 		return
 	}
 
-	err = h.authService.Register(req.Email, req.Password)
+	err = h.authService.Register(ctx, req.Email, req.Password)
 
 	if err != nil {
 		utils.BadRequest(c, err.Error())
@@ -75,6 +77,8 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //
 // @Router /auth/login [post]
 func (h *AuthHandler) Login(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	var req dto.LoginRequest
 
 	err := c.ShouldBindJSON(&req)
@@ -89,7 +93,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	accessToken, err := h.authService.Login(req.Email, req.Password)
+	accessToken, err := h.authService.Login(ctx, req.Email, req.Password)
 
 	if err != nil {
 		utils.Unauthorized(c, "Invalid credentials.")
@@ -117,6 +121,8 @@ func (h *AuthHandler) Login(c *gin.Context) {
 //
 // @Router /auth/me [get]
 func (h *AuthHandler) GetMe(c *gin.Context) {
+	ctx := c.Request.Context()
+
 	userID, exists := c.Get("UserID")
 
 	if !exists {
@@ -131,7 +137,7 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.GetUserByID(uid)
+	user, err := h.authService.GetUserByID(ctx, uid)
 
 	if err != nil {
 		utils.NotFound(c, "User not found.")

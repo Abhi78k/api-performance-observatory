@@ -1,14 +1,16 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"gorm.io/gorm"
 )
 
 type UserRepositoryInterface interface {
-	CreateUser(user *models.User) error
-	GetUserByEmail(email string) (*models.User, error)
-	GetUserByID(id uint) (*models.User, error)
+	CreateUser(ctx context.Context, user *models.User) error
+	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
+	GetUserByID(ctx context.Context, id uint) (*models.User, error)
 }
 
 type UserRepository struct {
@@ -22,10 +24,11 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (r *UserRepository) CreateUser(
+	ctx context.Context,
 	user *models.User,
 ) error {
 
-	err := r.db.Create(user).Error
+	err := r.db.WithContext(ctx).Create(user).Error
 
 	if err != nil {
 		return err
@@ -35,12 +38,13 @@ func (r *UserRepository) CreateUser(
 }
 
 func (r *UserRepository) GetUserByEmail(
+	ctx context.Context,
 	email string,
 ) (*models.User, error) {
 
 	var user models.User
 
-	err := r.db.Where("email = ?", email).First(&user).Error
+	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 
 	if err != nil {
 		return nil, err
@@ -50,12 +54,13 @@ func (r *UserRepository) GetUserByEmail(
 }
 
 func (r *UserRepository) GetUserByID(
+	ctx context.Context,
 	id uint,
 ) (*models.User, error) {
 
 	var user models.User
 
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.WithContext(ctx).Where("id = ?", id).First(&user).Error
 
 	if err != nil {
 		return nil, err

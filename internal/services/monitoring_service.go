@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"time"
 
 	"github.com/Abhi78k/api-performance-observatory/internal/dto"
@@ -22,6 +23,7 @@ func NewMonitoringService(
 }
 
 func (s *MonitoringService) StartMonitoring(
+	ctx context.Context,
 	endpointID uint,
 ) error {
 
@@ -30,7 +32,7 @@ func (s *MonitoringService) StartMonitoring(
 		MonitoringStartedAt: time.Now(),
 	}
 
-	err := s.monitoringRepo.Create(monitoring)
+	err := s.monitoringRepo.Create(ctx, monitoring)
 
 	if err != nil {
 		return err
@@ -45,25 +47,29 @@ func (s *MonitoringService) StartMonitoring(
 }
 
 func (s *MonitoringService) GetMonitoringRecord(
+	ctx context.Context,
 	endpointID uint,
 ) (*models.Monitoring, error) {
 
 	return s.monitoringRepo.GetByEndpointID(
+		ctx,
 		endpointID,
 	)
 }
 
 func (s *MonitoringService) GetByEndpointID(
+	ctx context.Context,
 	endpointID uint,
 ) (*models.Monitoring, error) {
-	return s.monitoringRepo.GetByEndpointID(endpointID)
+	return s.monitoringRepo.GetByEndpointID(ctx, endpointID)
 }
 
 func (s *MonitoringService) GetMonitoringResponse(
+	ctx context.Context,
 	endpointID uint,
 ) (*dto.MonitoringResponse, error) {
 
-	record, err := s.GetByEndpointID(endpointID)
+	record, err := s.GetByEndpointID(ctx, endpointID)
 	if err != nil {
 		return nil, err
 	}

@@ -1,30 +1,36 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/Abhi78k/api-performance-observatory/internal/models"
 	"gorm.io/gorm"
 )
 
 type IncidentRepositoryInterface interface {
 	Create(
+		ctx context.Context,
 		incident *models.Incident,
 	) error
 	GetActiveIncidentByEndpointID(
+		ctx context.Context,
 		endpointID uint,
 	) (*models.Incident, error)
 	Update(
+		ctx context.Context,
 		incident *models.Incident,
 	) error
 	GetByEndpointID(
+		ctx context.Context,
 		endpointID uint,
 	) ([]models.Incident, error)
-	GetAllIncidents() ([]models.Incident, error)
-	GetIncidentByID(id uint) (*models.Incident, error)
-	GetActiveIncidents() (
+	GetAllIncidents(ctx context.Context) ([]models.Incident, error)
+	GetIncidentByID(ctx context.Context, id uint) (*models.Incident, error)
+	GetActiveIncidents(ctx context.Context) (
 		[]models.Incident,
 		error,
 	)
-	GetRecentIncidents() (
+	GetRecentIncidents(ctx context.Context) (
 		[]models.Incident,
 		error,
 	)
@@ -41,18 +47,20 @@ func NewIncidentRepository(db *gorm.DB) *IncidentRepository {
 }
 
 func (r *IncidentRepository) Create(
+	ctx context.Context,
 	incident *models.Incident,
 ) error {
-	return r.db.Create(incident).Error
+	return r.db.WithContext(ctx).Create(incident).Error
 }
 
 func (r *IncidentRepository) GetActiveIncidentByEndpointID(
+	ctx context.Context,
 	endpointID uint,
 ) (*models.Incident, error) {
 
 	var incident models.Incident
 
-	err := r.db.
+	err := r.db.WithContext(ctx).
 		Where(
 			"endpoint_id = ? AND is_resolved = ?",
 			endpointID,
@@ -69,18 +77,20 @@ func (r *IncidentRepository) GetActiveIncidentByEndpointID(
 }
 
 func (r *IncidentRepository) Update(
+	ctx context.Context,
 	incident *models.Incident,
 ) error {
-	return r.db.Save(incident).Error
+	return r.db.WithContext(ctx).Save(incident).Error
 }
 
 func (r *IncidentRepository) GetByEndpointID(
+	ctx context.Context,
 	endpointID uint,
 ) ([]models.Incident, error) {
 
 	var incidents []models.Incident
 
-	err := r.db.
+	err := r.db.WithContext(ctx).
 		Where("endpoint_id = ?", endpointID).
 		Find(&incidents).
 		Error
@@ -88,11 +98,11 @@ func (r *IncidentRepository) GetByEndpointID(
 	return incidents, err
 }
 
-func (r *IncidentRepository) GetAllIncidents() ([]models.Incident, error) {
+func (r *IncidentRepository) GetAllIncidents(ctx context.Context) ([]models.Incident, error) {
 
 	var incidents []models.Incident
 
-	err := r.db.Order("started_at DESC").Find(&incidents).Error
+	err := r.db.WithContext(ctx).Order("started_at DESC").Find(&incidents).Error
 
 	if err != nil {
 		return nil, err
@@ -101,11 +111,11 @@ func (r *IncidentRepository) GetAllIncidents() ([]models.Incident, error) {
 	return incidents, err
 }
 
-func (r *IncidentRepository) GetIncidentByID(id uint) (*models.Incident, error) {
+func (r *IncidentRepository) GetIncidentByID(ctx context.Context, id uint) (*models.Incident, error) {
 
 	var incident models.Incident
 
-	err := r.db.Where("ID = ?", id).First(&incident).Error
+	err := r.db.WithContext(ctx).Where("ID = ?", id).First(&incident).Error
 
 	if err != nil {
 		return nil, err
@@ -114,14 +124,14 @@ func (r *IncidentRepository) GetIncidentByID(id uint) (*models.Incident, error) 
 	return &incident, nil
 }
 
-func (r *IncidentRepository) GetActiveIncidents() (
+func (r *IncidentRepository) GetActiveIncidents(ctx context.Context) (
 	[]models.Incident,
 	error,
 ) {
 
 	var incidents []models.Incident
 
-	err := r.db.Where("is_resolved = ?", false).Find(&incidents).Error
+	err := r.db.WithContext(ctx).Where("is_resolved = ?", false).Find(&incidents).Error
 
 	if err != nil {
 		return nil, err
@@ -130,14 +140,14 @@ func (r *IncidentRepository) GetActiveIncidents() (
 	return incidents, err
 }
 
-func (r *IncidentRepository) GetRecentIncidents() (
+func (r *IncidentRepository) GetRecentIncidents(ctx context.Context) (
 	[]models.Incident,
 	error,
 ) {
 
 	var incidents []models.Incident
 
-	err := r.db.Order("started_at DESC").Limit(10).Find(&incidents).Error
+	err := r.db.WithContext(ctx).Order("started_at DESC").Limit(10).Find(&incidents).Error
 
 	if err != nil {
 		return nil, err

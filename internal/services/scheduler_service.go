@@ -25,7 +25,7 @@ func NewSchedulerService(
 	}
 }
 
-func ShouldCheck(endpoint models.Endpoint) bool {
+func ShouldCheck(ctx context.Context, endpoint models.Endpoint) bool {
 
 	if endpoint.LastCheckedAt == nil {
 		return true
@@ -51,7 +51,7 @@ func (s *SchedulerService) Start(ctx context.Context) {
 		// func (r *EndpointRepository) GetAllEndpoints() ([]models.Endpoint, error)
 		//
 		// The scheduler needs all endpoints across all users.
-		endpoints, err := s.EndpointRepo.GetAllEndpoints()
+		endpoints, err := s.EndpointRepo.GetAllEndpoints(ctx)
 
 		if err != nil {
 			logger.Error(
@@ -78,7 +78,7 @@ func (s *SchedulerService) Start(ctx context.Context) {
 		semaphore := make(chan struct{}, 10)
 
 		for _, endpoint := range endpoints {
-			if !ShouldCheck(endpoint) {
+			if !ShouldCheck(ctx, endpoint) {
 				continue
 			}
 
@@ -99,7 +99,7 @@ func (s *SchedulerService) Start(ctx context.Context) {
 					"name", ep.Name,
 				)
 
-				if err := s.HealthCheckService.CheckEndpoint(ep); err != nil {
+				if err := s.HealthCheckService.CheckEndpoint(ctx, ep); err != nil {
 					logger.Error(
 						"Health check failed",
 						"endpoint_id", ep.ID,
@@ -112,7 +112,7 @@ func (s *SchedulerService) Start(ctx context.Context) {
 				now := time.Now()
 				ep.LastCheckedAt = &now
 
-				if err := s.EndpointRepo.Update(&ep); err != nil {
+				if err := s.EndpointRepo.Update(ctx, &ep); err != nil {
 					logger.Error(
 						"Failed to update last_checked_at",
 						"endpoint_id", ep.ID,

@@ -56,6 +56,9 @@ export function MonitoringGlobe({ arcs = MOCK_GLOBE_ARCS, className }: Monitorin
       arcWidth: 0.4,
       arcHeight: 0.25,
       markerElevation: 0.02,
+      // NOTE: MONITORING_NODES and MOCK_GLOBE_ARCS represent geographical locations of monitoring nodes.
+      // Once the backend exposes node location metadata (e.g. location/coordinates),
+      // replace these mock coordinates with real coordinate data fetched from the API.
       markers: MONITORING_NODES.map((node) => ({
         location: [node.lat, node.lng],
         size: 0.06,
@@ -65,6 +68,7 @@ export function MonitoringGlobe({ arcs = MOCK_GLOBE_ARCS, className }: Monitorin
         to: [arc.end.lat, arc.end.lng] as [number, number],
         color: ARC_COLORS[arc.type],
       })),
+
     })
 
     const animate = () => {

@@ -8,29 +8,43 @@ import type {
   EndpointStats,
 } from '@/types/api'
 
+export function normalizeEndpoint(raw: any): Endpoint {
+  if (!raw) return raw
+  return {
+    id: raw.id ?? raw.ID ?? '',
+    name: raw.name ?? raw.Name ?? '',
+    url: raw.url ?? raw.URL ?? '',
+    expected_status: raw.expected_status ?? raw.expectedStatus ?? raw.ExpectedStatus ?? 200,
+    status: raw.status ?? undefined,
+    last_checked: raw.last_checked ?? raw.lastCheckedAt ?? raw.LastCheckedAt ?? undefined,
+    response_time: raw.response_time ?? undefined,
+  }
+}
+
 export async function list(): Promise<Endpoint[]> {
-  const { data } = await apiClient.get<ApiResponse<Endpoint[]>>('/endpoints')
+  const { data } = await apiClient.get<ApiResponse<any[]>>('/endpoints')
   if (!data.success || !data.data) throw new Error('Failed to fetch endpoints')
-  return data.data
+  return data.data.map(normalizeEndpoint)
 }
 
 export async function get(id: string | number): Promise<Endpoint> {
-  const { data } = await apiClient.get<ApiResponse<Endpoint>>(`/endpoints/${id}`)
+  const { data } = await apiClient.get<ApiResponse<any>>(`/endpoints/${id}`)
   if (!data.success || !data.data) throw new Error('Failed to fetch endpoint')
-  return data.data
+  return normalizeEndpoint(data.data)
 }
 
 export async function create(payload: EndpointCreateUpdate): Promise<Endpoint> {
-  const { data } = await apiClient.post<ApiResponse<Endpoint>>('/endpoints', payload)
+  const { data } = await apiClient.post<ApiResponse<any>>('/endpoints', payload)
   if (!data.success || !data.data) throw new Error('Failed to create endpoint')
-  return data.data
+  return normalizeEndpoint(data.data)
 }
 
 export async function update(id: string | number, payload: EndpointCreateUpdate): Promise<Endpoint> {
-  const { data } = await apiClient.put<ApiResponse<Endpoint>>(`/endpoints/${id}`, payload)
+  const { data } = await apiClient.put<ApiResponse<any>>(`/endpoints/${id}`, payload)
   if (!data.success || !data.data) throw new Error('Failed to update endpoint')
-  return data.data
+  return normalizeEndpoint(data.data)
 }
+
 
 export async function remove(id: string | number): Promise<void> {
   const { data } = await apiClient.delete<ApiResponse<null>>(`/endpoints/${id}`)
@@ -38,10 +52,18 @@ export async function remove(id: string | number): Promise<void> {
 }
 
 export async function stats(id: string | number): Promise<EndpointStats> {
-  const { data } = await apiClient.get<ApiResponse<EndpointStats>>(`/endpoints/${id}/stats`)
+  const { data } = await apiClient.get<ApiResponse<any>>(`/endpoints/${id}/stats`)
   if (!data.success || !data.data) throw new Error('Failed to fetch endpoint stats')
-  return data.data
+  return {
+    average_response_time: data.data.average_latency ?? 0,
+    min_response_time: 0,
+    max_response_time: 0,
+    success_rate: data.data.success_rate ?? 0,
+    total_checks: data.data.total_checks ?? 0,
+    uptime_percentage: data.data.success_rate ?? 0,
+  }
 }
+
 
 export async function monitoring(id: string | number): Promise<EndpointMonitoring> {
   const { data } = await apiClient.get<ApiResponse<EndpointMonitoring>>(`/endpoints/${id}/monitoring`)

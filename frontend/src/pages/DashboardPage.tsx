@@ -29,7 +29,7 @@ import {
 } from '@/hooks/useDashboard'
 import { useHealthChecks } from '@/hooks/useHealthChecks'
 import { useActiveIncidents } from '@/hooks/useIncidents'
-import { mockEndpoints } from '@/mocks/data'
+import { useEndpoints } from '@/hooks/useEndpoints'
 import { formatMs, formatPercent } from '@/utils/format'
 
 export function DashboardPage() {
@@ -43,16 +43,20 @@ export function DashboardPage() {
   const healthChecks = useHealthChecks()
   const responseChart = useResponseTimeChart()
   const volumeChart = useRequestVolumeChart()
+  const endpointsQuery = useEndpoints()
 
-  const slowest = [...mockEndpoints]
+  const endpoints = endpointsQuery.data ?? []
+
+  const slowest = [...endpoints]
     .sort((a, b) => (b.response_time ?? 0) - (a.response_time ?? 0))
     .slice(0, 5)
     .map((e) => ({ id: e.id, name: e.name, value: formatMs(e.response_time ?? 0) }))
 
-  const errorRates = mockEndpoints
+  const errorRates = endpoints
     .filter((e) => e.status === 'unhealthy' || e.status === 'degraded')
     .slice(0, 5)
     .map((e) => ({ id: e.id, name: e.name, value: e.status === 'unhealthy' ? '4.2%' : '1.8%' }))
+
 
   if (overview.isLoading) {
     return (

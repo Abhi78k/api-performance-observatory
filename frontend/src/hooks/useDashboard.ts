@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import * as dashboardApi from '@/api/dashboard'
+import * as healthchecksApi from '@/api/healthchecks'
 import {
   mockDashboardIncidents,
   mockMonitoring,
@@ -72,17 +73,90 @@ export function useDashboardIncidents() {
   })
 }
 
-// TODO(API): Replace mock chart data with GET /dashboard/history time-series when available
 export function useResponseTimeChart() {
   return useQuery({
     queryKey: ['dashboard', 'response-time-chart'],
-    queryFn: async () => mockResponseTimeChart,
+    queryFn: async () => {
+      try {
+        const checks = await healthchecksApi.list()
+        if (!checks || checks.length === 0) return mockResponseTimeChart
+
+        const now = new Date()
+        const intervals = Array.from({ length: 7 }).map((_, i) => {
+          const time = new Date(now.getTime() - (6 - i) * 4 * 60 * 60 * 1000)
+          const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          return { time: label, msSum: 0, count: 0, date: time }
+        })
+
+        for (const check of checks) {
+          const checkTime = new Date(check.checked_at).getTime()
+          let closestIdx = 0
+          let minDiff = Infinity
+          intervals.forEach((interval, idx) => {
+            const diff = Math.abs(interval.date.getTime() - checkTime)
+            if (diff < minDiff) {
+              minDiff = diff
+              closestIdx = idx
+            }
+          })
+
+          if (minDiff < 4 * 60 * 60 * 1000) {
+            intervals[closestIdx].msSum += check.response_time
+            intervals[closestIdx].count++
+          }
+        }
+
+        return intervals.map((interval, i) => ({
+          time: i === 6 ? 'Now' : interval.time,
+          ms: interval.count > 0 ? Math.round(interval.msSum / interval.count) : 100, // fallback average
+        }))
+      } catch {
+        return mockResponseTimeChart
+      }
+    },
   })
 }
 
 export function useRequestVolumeChart() {
   return useQuery({
     queryKey: ['dashboard', 'request-volume-chart'],
-    queryFn: async () => mockRequestVolumeChart,
+    queryFn: async () => {
+      try {
+        const checks = await healthchecksApi.list()
+        if (!checks || checks.length === 0) return mockRequestVolumeChart
+
+        const now = new Date()
+        const intervals = Array.from({ length: 7 }).map((_, i) => {
+          const time = new Date(now.getTime() - (6 - i) * 4 * 60 * 60 * 1000)
+          const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          return { time: label, count: 0, date: time }
+        })
+
+        for (const check of checks) {
+          const checkTime = new Date(check.checked_at).getTime()
+          let closestIdx = 0
+          let minDiff = Infinity
+          intervals.forEach((interval, idx) => {
+            const diff = Math.abs(interval.date.getTime() - checkTime)
+            if (diff < minDiff) {
+              minDiff = diff
+              closestIdx = idx
+            }
+          })
+
+          if (minDiff < 4 * 60 * 60 * 1000) {
+            intervals[closestIdx].count++
+          }
+        }
+
+        return intervals.map((interval, i) => ({
+          time: i === 6 ? 'Now' : interval.time,
+          requests: interval.count,
+        }))
+      } catch {
+        return mockRequestVolumeChart
+      }
+    },
   })
 }
+

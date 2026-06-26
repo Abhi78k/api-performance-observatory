@@ -18,7 +18,8 @@ import {
   useEndpointStats,
 } from '@/hooks/useEndpoints'
 import { useEndpointHealthChecks } from '@/hooks/useHealthChecks'
-import { mockIncidents, mockResponseTimeChart } from '@/mocks/data'
+import { useIncidents } from '@/hooks/useIncidents'
+import { mockResponseTimeChart } from '@/mocks/data'
 import { formatDate, formatMs, formatPercent, getStatusColor } from '@/utils/format'
 
 export function EndpointDetailsPage() {
@@ -27,10 +28,47 @@ export function EndpointDetailsPage() {
   const stats = useEndpointStats(id)
   const monitoring = useEndpointMonitoring(id)
   const healthChecks = useEndpointHealthChecks(id)
+  const incidentsQuery = useIncidents()
 
-  const endpointIncidents = mockIncidents.filter(
+  const incidents = incidentsQuery.data ?? []
+  const endpointIncidents = incidents.filter(
     (i) => String(i.endpoint_id) === String(id),
   )
+
+  const chartData = (() => {
+    const checks = healthChecks.data ?? []
+    if (checks.length === 0) return mockResponseTimeChart
+
+    const now = new Date()
+    const intervals = Array.from({ length: 7 }).map((_, i) => {
+      const time = new Date(now.getTime() - (6 - i) * 4 * 60 * 60 * 1000)
+      const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      return { time: label, msSum: 0, count: 0, date: time }
+    })
+
+    for (const check of checks) {
+      const checkTime = new Date(check.checked_at).getTime()
+      let closestIdx = 0
+      let minDiff = Infinity
+      intervals.forEach((interval, idx) => {
+        const diff = Math.abs(interval.date.getTime() - checkTime)
+        if (diff < minDiff) {
+          minDiff = diff
+          closestIdx = idx
+        }
+      })
+
+      if (minDiff < 4 * 60 * 60 * 1000) {
+        intervals[closestIdx].msSum += check.response_time
+        intervals[closestIdx].count++
+      }
+    }
+
+    return intervals.map((interval, i) => ({
+      time: i === 6 ? 'Now' : interval.time,
+      ms: interval.count > 0 ? Math.round(interval.msSum / interval.count) : 0,
+    }))
+  })()
 
   if (endpoint.isLoading) return <CardSkeleton />
   if (endpoint.isError || !endpoint.data) {
@@ -145,7 +183,7 @@ export function EndpointDetailsPage() {
       <ChartCard
         title="Response Time"
         subtitle="Performance over 24h"
-        data={mockResponseTimeChart}
+        data={chartData}
         dataKey="ms"
         unit="ms"
       />
@@ -160,9 +198,9 @@ export function EndpointDetailsPage() {
         />
         <IncidentTimeline
           incidents={endpointIncidents}
-          isLoading={false}
-          isError={false}
-          onRetry={() => {}}
+          isLoading={incidentsQuery.isLoading}
+          isError={incidentsQuery.isError}
+          onRetry={() => incidentsQuery.refetch()}
           title="Incident History"
         />
       </div>

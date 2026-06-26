@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AuthLayout } from '@/layouts/AuthLayout'
 import { Button, Input, Typography } from '@/components/ui'
-import { login } from '@/api/auth'
+import { login, me } from '@/api/auth'
 import { useAuthStore } from '@/store/authStore'
 
 export function LoginPage() {
@@ -19,10 +19,16 @@ export function LoginPage() {
     setLoading(true)
 
     try {
-      // TODO(API): Connect login form to POST /auth/login — wired below
       const result = await login({ email, password })
       setAuth(result.access_token, { id: 0, email })
+      try {
+        const user = await me()
+        useAuthStore.getState().setUser(user)
+      } catch (err) {
+        console.error('Failed to fetch user profile:', err)
+      }
       navigate('/')
+
     } catch {
       // Mock fallback for development when backend is unavailable
       if (import.meta.env.VITE_USE_MOCK !== 'false') {

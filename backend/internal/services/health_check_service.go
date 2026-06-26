@@ -88,15 +88,15 @@ func (s *HealthCheckService) CheckEndpoint(ctx context.Context, endpoint models.
 			endpoint.ID,
 		)
 
-		if err == nil && incident == nil {
-			err = s.incidentService.StartIncident(
+		if err != nil {
+			return err
+		}
+
+		if incident == nil {
+			return s.incidentService.StartIncident(
 				ctx,
 				endpoint.ID,
 			)
-
-			if err != nil {
-				return err
-			}
 		}
 
 		return nil
@@ -149,16 +149,15 @@ func (s *HealthCheckService) CheckEndpoint(ctx context.Context, endpoint models.
 			endpoint.ID,
 		)
 
-		if err == nil && incident == nil {
+		if err != nil {
+			return err
+		}
 
-			err = s.incidentService.StartIncident(
+		if incident == nil {
+			return s.incidentService.StartIncident(
 				ctx,
 				endpoint.ID,
 			)
-
-			if err != nil {
-				return err
-			}
 		}
 	}
 
@@ -170,16 +169,15 @@ func (s *HealthCheckService) CheckEndpoint(ctx context.Context, endpoint models.
 			endpoint.ID,
 		)
 
-		if err == nil && incident != nil {
+		if err != nil {
+			return err
+		}
 
-			err = s.incidentService.ResolveIncident(
+		if incident != nil {
+			return s.incidentService.ResolveIncident(
 				ctx,
 				incident,
 			)
-
-			if err != nil {
-				return err
-			}
 		}
 	}
 

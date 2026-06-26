@@ -130,7 +130,7 @@ func SetupRouter(
 
 	{
 		healthCheck.GET(
-			"/",
+			"",
 			healthCheckHandler.GetAllHealthChecks,
 		)
 
@@ -145,7 +145,7 @@ func SetupRouter(
 
 	{
 		incidents.GET(
-			"/",
+			"",
 			incidentsHandler.ListIncidents,
 		)
 

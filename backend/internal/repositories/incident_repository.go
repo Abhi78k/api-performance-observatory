@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"errors"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/models"
 	"gorm.io/gorm"
@@ -68,6 +69,10 @@ func (r *IncidentRepository) GetActiveIncidentByEndpointID(
 		).
 		First(&incident).
 		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
 
 	if err != nil {
 		return nil, err

@@ -5,6 +5,26 @@ import (
 	"gorm.io/gorm"
 )
 
+type EndpointRepositoryInterface interface {
+	Create(
+		endpoint *models.Endpoint,
+	) error
+	GetAllEndpoints() ([]models.Endpoint, error)
+	GetAllByUserID(
+		userID uint,
+	) ([]models.Endpoint, error)
+	GetByID(
+		id string,
+		userID uint,
+	) (*models.Endpoint, error)
+	Update(
+		endpoint *models.Endpoint,
+	) error
+	Delete(
+		endpoint *models.Endpoint,
+	) error
+}
+
 type EndpointRepository struct {
 	db *gorm.DB
 }

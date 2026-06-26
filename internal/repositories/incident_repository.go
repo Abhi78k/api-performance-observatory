@@ -5,6 +5,31 @@ import (
 	"gorm.io/gorm"
 )
 
+type IncidentRepositoryInterface interface {
+	Create(
+		incident *models.Incident,
+	) error
+	GetActiveIncidentByEndpointID(
+		endpointID uint,
+	) (*models.Incident, error)
+	Update(
+		incident *models.Incident,
+	) error
+	GetByEndpointID(
+		endpointID uint,
+	) ([]models.Incident, error)
+	GetAllIncidents() ([]models.Incident, error)
+	GetIncidentByID(id uint) (*models.Incident, error)
+	GetActiveIncidents() (
+		[]models.Incident,
+		error,
+	)
+	GetRecentIncidents() (
+		[]models.Incident,
+		error,
+	)
+}
+
 type IncidentRepository struct {
 	db *gorm.DB
 }

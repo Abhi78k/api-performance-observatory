@@ -10,12 +10,12 @@ import (
 )
 
 type HealthCheckService struct {
-	EndpointRepo    *repositories.EndpointRepository
-	HealthCheckRepo *repositories.HealthCheckRepository
+	EndpointRepo    repositories.EndpointRepositoryInterface
+	HealthCheckRepo repositories.HealthCheckRepositoryInterface
 	incidentService *IncidentService
 }
 
-func NewHealthCheckService(endpointRepo *repositories.EndpointRepository, healthCheckRepo *repositories.HealthCheckRepository, incidentService *IncidentService) *HealthCheckService {
+func NewHealthCheckService(endpointRepo repositories.EndpointRepositoryInterface, healthCheckRepo repositories.HealthCheckRepositoryInterface, incidentService *IncidentService) *HealthCheckService {
 	return &HealthCheckService{
 		EndpointRepo:    endpointRepo,
 		HealthCheckRepo: healthCheckRepo,

@@ -7,12 +7,12 @@ import (
 )
 
 type EndpointService struct {
-	endpointRepo      *repositories.EndpointRepository
+	endpointRepo      repositories.EndpointRepositoryInterface
 	monitoringService *MonitoringService
 }
 
 func NewEndpointService(
-	endpointRepo *repositories.EndpointRepository,
+	endpointRepo repositories.EndpointRepositoryInterface,
 	monitoringService *MonitoringService,
 ) *EndpointService {
 

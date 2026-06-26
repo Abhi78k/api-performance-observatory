@@ -9,11 +9,11 @@ import (
 )
 
 type IncidentService struct {
-	incidentRepo *repositories.IncidentRepository
+	incidentRepo repositories.IncidentRepositoryInterface
 }
 
 func NewIncidentService(
-	incidentRepo *repositories.IncidentRepository,
+	incidentRepo repositories.IncidentRepositoryInterface,
 ) *IncidentService {
 	return &IncidentService{
 		incidentRepo: incidentRepo,

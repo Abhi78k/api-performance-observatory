@@ -10,11 +10,11 @@ import (
 )
 
 type MonitoringService struct {
-	monitoringRepo *repositories.MonitoringRepository
+	monitoringRepo repositories.MonitoringRepositoryInterface
 }
 
 func NewMonitoringService(
-	monitoringRepo *repositories.MonitoringRepository,
+	monitoringRepo repositories.MonitoringRepositoryInterface,
 ) *MonitoringService {
 	return &MonitoringService{
 		monitoringRepo: monitoringRepo,

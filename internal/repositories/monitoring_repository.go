@@ -5,6 +5,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type MonitoringRepositoryInterface interface {
+	Create(
+		monitoring *models.Monitoring,
+	) error
+	GetByEndpointID(
+		endpointID uint,
+	) (*models.Monitoring, error)
+}
+
 type MonitoringRepository struct {
 	db *gorm.DB
 }

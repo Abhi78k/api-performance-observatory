@@ -5,6 +5,15 @@ import (
 	"gorm.io/gorm"
 )
 
+type HealthCheckRepositoryInterface interface {
+	Create(check *models.HealthCheck) error
+	GetByEndpointID(endpointID uint) ([]models.HealthCheck, error)
+	GetAll() ([]models.HealthCheck, error)
+	GetLatestByEndpointID(
+		endpointID uint,
+	) (*models.HealthCheck, error)
+}
+
 type HealthCheckRepository struct {
 	DB *gorm.DB
 }

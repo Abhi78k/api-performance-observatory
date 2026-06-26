@@ -115,7 +115,7 @@ export function EndpointsPage() {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
           <div className="flex-1">
             <Input
-              placeholder="Search endpoints..."
+              placeholder="    Search endpoints..."
               icon={<Search className="h-4 w-4" />}
               value={search}
               onChange={(e) => setSearch(e.target.value)}

@@ -7,16 +7,22 @@ import {
   Server,
   TrendingUp,
   XCircle,
-} from 'lucide-react'
-import { MonitoringGlobe } from '@/components/Globe/MonitoringGlobe'
-import { MiniStatisticsCard, Card, Typography, CardSkeleton, ErrorState } from '@/components/ui'
-import { ChartCard } from '@/features/dashboard/ChartCard'
+} from "lucide-react";
+import { MonitoringGlobe } from "@/components/Globe/MonitoringGlobe";
+import {
+  MiniStatisticsCard,
+  Card,
+  Typography,
+  CardSkeleton,
+  ErrorState,
+} from "@/components/ui";
+import { ChartCard } from "@/features/dashboard/ChartCard";
 import {
   EndpointStatusList,
   HealthCheckList,
   IncidentTimeline,
   RankedEndpoints,
-} from '@/features/dashboard/DashboardWidgets'
+} from "@/features/dashboard/DashboardWidgets";
 import {
   useDashboardIncidents,
   useDashboardOverview,
@@ -26,37 +32,44 @@ import {
   useDashboardUptime,
   useRequestVolumeChart,
   useResponseTimeChart,
-} from '@/hooks/useDashboard'
-import { useHealthChecks } from '@/hooks/useHealthChecks'
-import { useActiveIncidents } from '@/hooks/useIncidents'
-import { useEndpoints } from '@/hooks/useEndpoints'
-import { formatMs, formatPercent } from '@/utils/format'
+} from "@/hooks/useDashboard";
+import { useHealthChecks } from "@/hooks/useHealthChecks";
+import { useActiveIncidents } from "@/hooks/useIncidents";
+import { useEndpoints } from "@/hooks/useEndpoints";
+import { formatMs, formatPercent } from "@/utils/format";
 
 export function DashboardPage() {
-  const overview = useDashboardOverview()
-  const status = useDashboardStatus()
-  const performance = useDashboardPerformance()
-  const successRate = useDashboardSuccessRate()
-  const uptime = useDashboardUptime()
-  const incidents = useDashboardIncidents()
-  const activeIncidents = useActiveIncidents()
-  const healthChecks = useHealthChecks()
-  const responseChart = useResponseTimeChart()
-  const volumeChart = useRequestVolumeChart()
-  const endpointsQuery = useEndpoints()
+  const overview = useDashboardOverview();
+  const status = useDashboardStatus();
+  const performance = useDashboardPerformance();
+  const successRate = useDashboardSuccessRate();
+  const uptime = useDashboardUptime();
+  const incidents = useDashboardIncidents();
+  const activeIncidents = useActiveIncidents();
+  const healthChecks = useHealthChecks();
+  const responseChart = useResponseTimeChart();
+  const volumeChart = useRequestVolumeChart();
+  const endpointsQuery = useEndpoints();
 
-  const endpoints = endpointsQuery.data ?? []
+  const endpoints = endpointsQuery.data ?? [];
 
   const slowest = [...endpoints]
     .sort((a, b) => (b.response_time ?? 0) - (a.response_time ?? 0))
     .slice(0, 5)
-    .map((e) => ({ id: e.id, name: e.name, value: formatMs(e.response_time ?? 0) }))
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      value: formatMs(e.response_time ?? 0),
+    }));
 
   const errorRates = endpoints
-    .filter((e) => e.status === 'unhealthy' || e.status === 'degraded')
+    .filter((e) => e.status === "unhealthy" || e.status === "degraded")
     .slice(0, 5)
-    .map((e) => ({ id: e.id, name: e.name, value: e.status === 'unhealthy' ? '4.2%' : '1.8%' }))
-
+    .map((e) => ({
+      id: e.id,
+      name: e.name,
+      value: e.status === "unhealthy" ? "4.2%" : "1.8%",
+    }));
 
   if (overview.isLoading) {
     return (
@@ -65,14 +78,14 @@ export function DashboardPage() {
           <CardSkeleton key={i} />
         ))}
       </div>
-    )
+    );
   }
 
   if (overview.isError) {
-    return <ErrorState onRetry={() => overview.refetch()} />
+    return <ErrorState onRetry={() => overview.refetch()} />;
   }
 
-  const data = overview.data!
+  const data = overview.data!;
 
   return (
     <div className="space-y-6">
@@ -81,12 +94,17 @@ export function DashboardPage() {
           Global Overview
         </Typography>
         <Typography variant="body2" color="text">
-          Real-time API monitoring across {data.monitored_endpoints} endpoints worldwide
+          Real-time API monitoring across {data.monitored_endpoints} endpoints
+          worldwide
         </Typography>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <MiniStatisticsCard title="Total Endpoints" value={data.total_endpoints} icon={Server} />
+        <MiniStatisticsCard
+          title="Total Endpoints"
+          value={data.total_endpoints}
+          icon={Server}
+        />
         <MiniStatisticsCard
           title="Healthy"
           value={data.healthy_count}
@@ -104,8 +122,12 @@ export function DashboardPage() {
         />
         <MiniStatisticsCard
           title="Overall Uptime"
-          value={uptime.data ? formatPercent(uptime.data.uptime_percentage) : '—'}
-          subtitle={uptime.data ? `${uptime.data.total_incidents} incidents` : undefined}
+          value={
+            uptime.data ? formatPercent(uptime.data.uptime_percentage) : "—"
+          }
+          subtitle={
+            uptime.data ? `${uptime.data.total_incidents} incidents` : undefined
+          }
           subtitleColor="info"
           icon={TrendingUp}
         />
@@ -115,14 +137,30 @@ export function DashboardPage() {
         <div className="lg:col-span-3 space-y-4">
           <MiniStatisticsCard
             title="Avg Response Time"
-            value={performance.data ? formatMs(performance.data.average_response_time) : '—'}
-            subtitle={performance.data ? `min ${formatMs(performance.data.min_response_time)}` : undefined}
+            value={
+              performance.data
+                ? formatMs(performance.data.average_response_time)
+                : "—"
+            }
+            subtitle={
+              performance.data
+                ? `min ${formatMs(performance.data.min_response_time)}`
+                : undefined
+            }
             icon={Clock}
           />
           <MiniStatisticsCard
             title="Request Volume"
-            value={successRate.data ? successRate.data.total_checks.toLocaleString() : '—'}
-            subtitle={successRate.data ? formatPercent(successRate.data.success_rate) + ' success' : undefined}
+            value={
+              successRate.data
+                ? successRate.data.total_checks.toLocaleString()
+                : "—"
+            }
+            subtitle={
+              successRate.data
+                ? formatPercent(successRate.data.success_rate) + " success"
+                : undefined
+            }
             icon={Activity}
           />
           <MiniStatisticsCard
@@ -137,7 +175,12 @@ export function DashboardPage() {
         <div className="lg:col-span-6">
           <Card className="relative h-[420px] overflow-hidden !p-0">
             <div className="absolute inset-x-0 top-4 z-10 text-center">
-              <Typography variant="subtitle1" color="white" fontWeight="bold" className="flex items-center justify-center gap-2">
+              <Typography
+                variant="subtitle1"
+                color="white"
+                fontWeight="bold"
+                className="flex items-center justify-center gap-2"
+              >
                 <Globe className="h-4 w-4 text-info" />
                 Global Monitoring Network
               </Typography>
@@ -151,7 +194,14 @@ export function DashboardPage() {
 
         <div className="lg:col-span-3 space-y-4">
           <RankedEndpoints title="Top Slowest Endpoints" items={slowest} />
-          <RankedEndpoints title="Top Error Rates" items={errorRates.length ? errorRates : slowest.slice(0, 3).map(e => ({ ...e, value: '0.5%' }))} />
+          <RankedEndpoints
+            title="Top Error Rates"
+            items={
+              errorRates.length
+                ? errorRates
+                : slowest.slice(0, 3).map((e) => ({ ...e, value: "0.5%" }))
+            }
+          />
         </div>
       </div>
 
@@ -196,37 +246,52 @@ export function DashboardPage() {
 
       {uptime.data && (
         <Card>
-          <Typography variant="lg" color="white" fontWeight="bold" className="mb-4">
+          <Typography
+            variant="lg"
+            color="white"
+            fontWeight="bold"
+            className="mb-4"
+          >
             KPI Summary
           </Typography>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
-              <Typography variant="caption" color="text">Uptime</Typography>
+              <Typography variant="caption" color="text">
+                Uptime
+              </Typography>
               <Typography variant="h6" color="success" fontWeight="bold">
                 {formatPercent(uptime.data.uptime_percentage)}
               </Typography>
             </div>
             <div>
-              <Typography variant="caption" color="text">Total Downtime</Typography>
+              <Typography variant="caption" color="text">
+                Total Downtime
+              </Typography>
               <Typography variant="h6" color="white" fontWeight="bold">
-                {uptime.data.total_downtime_minutes}m
+                {uptime.data.total_downtime_minutes.toFixed(2)}m
               </Typography>
             </div>
             <div>
-              <Typography variant="caption" color="text">Avg Incident Duration</Typography>
+              <Typography variant="caption" color="text">
+                Avg Incident Duration
+              </Typography>
               <Typography variant="h6" color="white" fontWeight="bold">
                 {uptime.data.average_incident_minutes.toFixed(1)}m
               </Typography>
             </div>
             <div>
-              <Typography variant="caption" color="text">Failure Rate</Typography>
+              <Typography variant="caption" color="text">
+                Failure Rate
+              </Typography>
               <Typography variant="h6" color="error" fontWeight="bold">
-                {successRate.data ? formatPercent(successRate.data.failure_rate) : '—'}
+                {successRate.data
+                  ? formatPercent(successRate.data.failure_rate)
+                  : "—"}
               </Typography>
             </div>
           </div>
         </Card>
       )}
     </div>
-  )
+  );
 }

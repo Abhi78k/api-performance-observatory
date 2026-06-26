@@ -1,27 +1,27 @@
-import { useEffect } from 'react'
-import { User, Mail, Shield } from 'lucide-react'
-import { Card, CardSkeleton, ErrorState, Typography } from '@/components/ui'
-import { me } from '@/api/auth'
-import { useAuthStore } from '@/store/authStore'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from "react";
+import { User, Mail, Shield } from "lucide-react";
+import { Card, CardSkeleton, ErrorState, Typography } from "@/components/ui";
+import { me } from "@/api/auth";
+import { useAuthStore } from "@/store/authStore";
+import { useQuery } from "@tanstack/react-query";
 
 export function ProfilePage() {
-  const { user, setUser, token } = useAuthStore()
+  const { user, setUser, token } = useAuthStore();
 
   const profile = useQuery({
-    queryKey: ['auth', 'me'],
+    queryKey: ["auth", "me"],
     queryFn: me,
     enabled: !!token,
     retry: false,
-  })
+  });
 
   useEffect(() => {
-    if (profile.data) setUser(profile.data)
-  }, [profile.data, setUser])
+    if (profile.data) setUser(profile.data);
+  }, [profile.data, setUser]);
 
-  const displayUser = profile.data ?? user
+  const displayUser = profile.data ?? user;
 
-  if (profile.isLoading && !displayUser) return <CardSkeleton />
+  if (profile.isLoading && !displayUser) return <CardSkeleton />;
 
   return (
     <div className="space-y-6">
@@ -47,12 +47,17 @@ export function ProfilePage() {
             <User className="h-8 w-8 text-white" />
           </div>
           <div>
-            <Typography variant="h6" color="white" fontWeight="bold">
-              {displayUser?.email ?? 'User'}
+            <Typography
+              variant="h6"
+              color="white"
+              fontWeight="bold"
+              className="pt-2"
+            >
+              {displayUser?.email ?? "User"}
             </Typography>
-            <Typography variant="caption" color="text">
-              Account ID: {displayUser?.id ?? '—'}
-            </Typography>
+            {/*<Typography variant="caption" color="text">
+              Account ID: {displayUser?.id ?? "—"}
+            </Typography>*/}
           </div>
         </div>
 
@@ -60,19 +65,27 @@ export function ProfilePage() {
           <div className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3">
             <Mail className="h-5 w-5 text-info" />
             <div>
-              <Typography variant="caption" color="text">Email Address</Typography>
-              <Typography variant="button" color="white">{displayUser?.email ?? '—'}</Typography>
+              <Typography variant="caption" color="text" className="pr-2">
+                Email Address:
+              </Typography>
+              <Typography variant="button" color="white">
+                {displayUser?.email ?? "—"}
+              </Typography>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3">
+          {/*<div className="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3">
             <Shield className="h-5 w-5 text-success" />
             <div>
-              <Typography variant="caption" color="text">Authentication</Typography>
-              <Typography variant="button" color="white">JWT Bearer Token</Typography>
+              <Typography variant="caption" color="text">
+                Authentication
+              </Typography>
+              <Typography variant="button" color="white">
+                JWT Bearer Token
+              </Typography>
             </div>
-          </div>
+          </div>*/}
         </dl>
       </Card>
     </div>
-  )
+  );
 }

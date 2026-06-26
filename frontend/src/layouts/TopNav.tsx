@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import {
   Activity,
   AlertTriangle,
@@ -8,26 +8,26 @@ import {
   LogOut,
   Server,
   User,
-} from 'lucide-react'
-import { useAuthStore } from '@/store/authStore'
-import { Typography } from '@/components/ui'
-import { cn } from '@/utils/cn'
+} from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import { Typography } from "@/components/ui";
+import { cn } from "@/utils/cn";
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/endpoints', label: 'Endpoints', icon: Server },
-  { to: '/health-checks', label: 'Health Checks', icon: HeartPulse },
-  { to: '/incidents', label: 'Incidents', icon: AlertTriangle },
-]
+  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/endpoints", label: "Endpoints", icon: Server },
+  { to: "/health-checks", label: "Health Checks", icon: HeartPulse },
+  { to: "/incidents", label: "Incidents", icon: AlertTriangle },
+];
 
 export function TopNav() {
-  const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+    logout();
+    navigate("/login");
+  };
 
   return (
     <header className="navbar-gradient sticky top-0 z-40 w-full">
@@ -38,12 +38,17 @@ export function TopNav() {
               <Globe2 className="h-5 w-5 text-white" />
             </div>
             <div className="hidden sm:block">
-              <Typography variant="button" color="white" fontWeight="bold" className="leading-tight">
-                API Performance
+              <Typography
+                variant="button"
+                color="white"
+                fontWeight="bold"
+                className="leading-tight"
+              >
+                API Performance Observatory
               </Typography>
-              <Typography variant="caption" color="text" className="leading-tight">
+              {/*<Typography variant="caption" color="text" className="leading-tight">
                 Observatory
-              </Typography>
+              </Typography>*/}
             </div>
           </Link>
 
@@ -52,13 +57,13 @@ export function TopNav() {
               <NavLink
                 key={to}
                 to={to}
-                end={to === '/'}
+                end={to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    "flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                     isActive
-                      ? 'bg-info/20 text-text-focus'
-                      : 'text-text hover:bg-white/5 hover:text-text-focus',
+                      ? "bg-info/20 text-text-focus"
+                      : "text-text hover:bg-white/5 hover:text-text-focus",
                   )
                 }
               >
@@ -81,7 +86,7 @@ export function TopNav() {
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-text transition-colors hover:bg-white/5 hover:text-text-focus"
           >
             <User className="h-4 w-4" />
-            <span className="hidden sm:inline">{user?.email ?? 'Profile'}</span>
+            <span className="hidden sm:inline">{user?.email ?? "Profile"}</span>
           </Link>
           <button
             onClick={handleLogout}
@@ -98,11 +103,11 @@ export function TopNav() {
           <NavLink
             key={to}
             to={to}
-            end={to === '/'}
+            end={to === "/"}
             className={({ isActive }) =>
               cn(
-                'flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium',
-                isActive ? 'bg-info/20 text-text-focus' : 'text-text',
+                "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium",
+                isActive ? "bg-info/20 text-text-focus" : "text-text",
               )
             }
           >
@@ -112,5 +117,5 @@ export function TopNav() {
         ))}
       </nav>
     </header>
-  )
+  );
 }

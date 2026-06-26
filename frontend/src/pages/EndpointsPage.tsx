@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Search } from 'lucide-react'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import {
   Badge,
   Button,
@@ -13,73 +13,86 @@ import {
   Table,
   TableSkeleton,
   Typography,
-} from '@/components/ui'
-import { useCreateEndpoint, useDeleteEndpoint, useEndpoints, useUpdateEndpoint } from '@/hooks/useEndpoints'
-import { formatDate, formatMs, getStatusColor } from '@/utils/format'
-import type { Endpoint, EndpointCreateUpdate } from '@/types/api'
+} from "@/components/ui";
+import {
+  useCreateEndpoint,
+  useDeleteEndpoint,
+  useEndpoints,
+  useUpdateEndpoint,
+} from "@/hooks/useEndpoints";
+import { formatDate, formatMs, getStatusColor } from "@/utils/format";
+import type { Endpoint, EndpointCreateUpdate } from "@/types/api";
 
-const emptyForm: EndpointCreateUpdate = { name: '', url: '', expected_status: 200 }
+const emptyForm: EndpointCreateUpdate = {
+  name: "",
+  url: "",
+  expected_status: 200,
+};
 
 export function EndpointsPage() {
-  const navigate = useNavigate()
-  const { data, isLoading, isError, refetch } = useEndpoints()
-  const createMutation = useCreateEndpoint()
-  const updateMutation = useUpdateEndpoint()
-  const deleteMutation = useDeleteEndpoint()
+  const navigate = useNavigate();
+  const { data, isLoading, isError, refetch } = useEndpoints();
+  const createMutation = useCreateEndpoint();
+  const updateMutation = useUpdateEndpoint();
+  const deleteMutation = useDeleteEndpoint();
 
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editing, setEditing] = useState<Endpoint | null>(null)
-  const [form, setForm] = useState<EndpointCreateUpdate>(emptyForm)
-  const [deleteConfirm, setDeleteConfirm] = useState<Endpoint | null>(null)
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<Endpoint | null>(null);
+  const [form, setForm] = useState<EndpointCreateUpdate>(emptyForm);
+  const [deleteConfirm, setDeleteConfirm] = useState<Endpoint | null>(null);
 
   const filtered = (data ?? []).filter((ep) => {
     const matchesSearch =
       ep.name.toLowerCase().includes(search.toLowerCase()) ||
-      ep.url.toLowerCase().includes(search.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || ep.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
+      ep.url.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus = statusFilter === "all" || ep.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const openCreate = () => {
-    setEditing(null)
-    setForm(emptyForm)
-    setModalOpen(true)
-  }
+    setEditing(null);
+    setForm(emptyForm);
+    setModalOpen(true);
+  };
 
   const openEdit = (ep: Endpoint) => {
-    setEditing(ep)
-    setForm({ name: ep.name, url: ep.url, expected_status: ep.expected_status })
-    setModalOpen(true)
-  }
+    setEditing(ep);
+    setForm({
+      name: ep.name,
+      url: ep.url,
+      expected_status: ep.expected_status,
+    });
+    setModalOpen(true);
+  };
 
   const handleSave = async () => {
     try {
       if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, payload: form })
+        await updateMutation.mutateAsync({ id: editing.id, payload: form });
       } else {
-        await createMutation.mutateAsync(form)
+        await createMutation.mutateAsync(form);
       }
-      setModalOpen(false)
-      refetch()
+      setModalOpen(false);
+      refetch();
     } catch {
       // TODO(API): Remove mock success when POST/PUT /endpoints is connected
-      setModalOpen(false)
-      refetch()
+      setModalOpen(false);
+      refetch();
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!deleteConfirm) return
+    if (!deleteConfirm) return;
     try {
-      await deleteMutation.mutateAsync(deleteConfirm.id)
+      await deleteMutation.mutateAsync(deleteConfirm.id);
     } catch {
       // TODO(API): Remove mock success when DELETE /endpoints/{id} is connected
     }
-    setDeleteConfirm(null)
-    refetch()
-  }
+    setDeleteConfirm(null);
+    refetch();
+  };
 
   return (
     <div className="space-y-6">
@@ -110,10 +123,9 @@ export function EndpointsPage() {
           </div>
           <Select
             options={[
-              { value: 'all', label: 'All Statuses' },
-              { value: 'healthy', label: 'Healthy' },
-              { value: 'degraded', label: 'Degraded' },
-              { value: 'unhealthy', label: 'Unhealthy' },
+              { value: "all", label: "All Statuses" },
+              { value: "healthy", label: "Healthy" },
+              { value: "unhealthy", label: "Unhealthy" },
             ]}
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -127,7 +139,12 @@ export function EndpointsPage() {
           <EmptyState
             title="No endpoints found"
             description="Create your first endpoint to start monitoring."
-            action={<Button onClick={openCreate}><Plus className="h-4 w-4" />Add Endpoint</Button>}
+            action={
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4" />
+                Add Endpoint
+              </Button>
+            }
           />
         )}
         {!isLoading && !isError && filtered.length > 0 && (
@@ -136,33 +153,64 @@ export function EndpointsPage() {
             keyExtractor={(row) => row.id}
             onRowClick={(row) => navigate(`/endpoints/${row.id}`)}
             columns={[
-              { key: 'name', header: 'Name', render: (r) => <span className="font-medium">{r.name}</span> },
-              { key: 'url', header: 'URL', render: (r) => <span className="text-text truncate max-w-[200px] block">{r.url}</span> },
               {
-                key: 'status',
-                header: 'Status',
-                render: (r) => <Badge color={getStatusColor(r.status ?? 'unknown')}>{r.status ?? 'unknown'}</Badge>,
-              },
-              { key: 'expected_status', header: 'Expected Status' },
-              {
-                key: 'last_checked',
-                header: 'Last Checked',
-                render: (r) => r.last_checked ? formatDate(r.last_checked) : '—',
+                key: "name",
+                header: "Name",
+                render: (r) => <span className="font-medium">{r.name}</span>,
               },
               {
-                key: 'response_time',
-                header: 'Response Time',
-                render: (r) => r.response_time ? formatMs(r.response_time) : '—',
-              },
-              {
-                key: 'actions',
-                header: 'Actions',
+                key: "url",
+                header: "URL",
                 render: (r) => (
-                  <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="text" iconOnly size="small" onClick={() => openEdit(r)}>
+                  <span className="text-text truncate max-w-[200px] block">
+                    {r.url}
+                  </span>
+                ),
+              },
+              {
+                key: "status",
+                header: "Status",
+                render: (r) => (
+                  <Badge color={getStatusColor(r.status ?? "unknown")}>
+                    {r.status ?? "unknown"}
+                  </Badge>
+                ),
+              },
+              { key: "expected_status", header: "Expected Status" },
+              {
+                key: "last_checked",
+                header: "Last Checked",
+                render: (r) =>
+                  r.last_checked ? formatDate(r.last_checked) : "—",
+              },
+              {
+                key: "response_time",
+                header: "Response Time",
+                render: (r) =>
+                  r.response_time ? formatMs(r.response_time) : "—",
+              },
+              {
+                key: "actions",
+                header: "Actions",
+                render: (r) => (
+                  <div
+                    className="flex gap-1"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button
+                      variant="text"
+                      iconOnly
+                      size="small"
+                      onClick={() => openEdit(r)}
+                    >
                       <Pencil className="h-4 w-4" />
                     </Button>
-                    <Button variant="text" iconOnly size="small" onClick={() => setDeleteConfirm(r)}>
+                    <Button
+                      variant="text"
+                      iconOnly
+                      size="small"
+                      onClick={() => setDeleteConfirm(r)}
+                    >
                       <Trash2 className="h-4 w-4 text-error" />
                     </Button>
                   </div>
@@ -176,31 +224,56 @@ export function EndpointsPage() {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? 'Edit Endpoint' : 'Create Endpoint'}
+        title={editing ? "Edit Endpoint" : "Create Endpoint"}
         footer={
           <>
-            <Button variant="outlined" color="white" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} loading={createMutation.isPending || updateMutation.isPending}>
-              {editing ? 'Save Changes' : 'Create'}
+            <Button
+              variant="outlined"
+              color="white"
+              onClick={() => setModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              loading={createMutation.isPending || updateMutation.isPending}
+            >
+              {editing ? "Save Changes" : "Create"}
             </Button>
           </>
         }
       >
         <div className="space-y-4">
           <div>
-            <Typography variant="button" color="white" className="mb-1 block">Name</Typography>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Auth API" />
+            <Typography variant="button" color="white" className="mb-1 block">
+              Name
+            </Typography>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Auth API"
+            />
           </div>
           <div>
-            <Typography variant="button" color="white" className="mb-1 block">URL</Typography>
-            <Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://api.example.com/health" />
+            <Typography variant="button" color="white" className="mb-1 block">
+              URL
+            </Typography>
+            <Input
+              value={form.url}
+              onChange={(e) => setForm({ ...form, url: e.target.value })}
+              placeholder="https://api.example.com/health"
+            />
           </div>
           <div>
-            <Typography variant="button" color="white" className="mb-1 block">Expected Status Code</Typography>
+            <Typography variant="button" color="white" className="mb-1 block">
+              Expected Status Code
+            </Typography>
             <Input
               type="number"
               value={form.expected_status}
-              onChange={(e) => setForm({ ...form, expected_status: Number(e.target.value) })}
+              onChange={(e) =>
+                setForm({ ...form, expected_status: Number(e.target.value) })
+              }
             />
           </div>
         </div>
@@ -212,15 +285,29 @@ export function EndpointsPage() {
         title="Delete Endpoint"
         footer={
           <>
-            <Button variant="outlined" color="white" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-            <Button color="error" onClick={handleDelete} loading={deleteMutation.isPending}>Delete</Button>
+            <Button
+              variant="outlined"
+              color="white"
+              onClick={() => setDeleteConfirm(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              color="error"
+              onClick={handleDelete}
+              loading={deleteMutation.isPending}
+            >
+              Delete
+            </Button>
           </>
         }
       >
         <Typography variant="body2" color="text">
-          Are you sure you want to delete <strong className="text-text-focus">{deleteConfirm?.name}</strong>? This action cannot be undone.
+          Are you sure you want to delete{" "}
+          <strong className="text-text-focus">{deleteConfirm?.name}</strong>?
+          This action cannot be undone.
         </Typography>
       </Modal>
     </div>
-  )
+  );
 }

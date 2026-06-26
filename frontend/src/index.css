@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #0075ff;
+  --color-primary: #4318ff;
+  --color-primary-focus: #9f7aea;
+  --color-secondary: #0f1535;
+  --color-info: #0075ff;
+  --color-success: #01b574;
+  --color-warning: #ffb547;
+  --color-error: #e31a1a;
+  --color-text: #a0aec0;
+  --color-text-focus: #ffffff;
+  --color-grey-100: #edf2f7;
+  --color-grey-400: #a0aec0;
+  --color-grey-500: #718096;
+  --color-grey-700: #2d3748;
+  --color-grey-800: #1a202a;
+  --color-grey-900: #171923;
+  --color-dark-body: #030c1d;
+  --color-border: rgba(226, 232, 240, 0.3);
+  --color-input-bg: #0f1535;
+  --font-sans: "Plus Jakarta Display", "Helvetica", "Arial", sans-serif;
+  --radius-xl: 1rem;
+  --radius-lg: 0.75rem;
+  --radius-md: 0.5rem;
+  --shadow-card: 0 20px 27px 0 rgba(0, 0, 0, 0.05);
+}
+
+@font-face {
+  font-family: "Plus Jakarta Display";
+  src: local("Plus Jakarta Display"), local("Helvetica Neue");
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100vh;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: linear-gradient(159.02deg, #0f123b 14.25%, #090d2e 56.45%, #020515 86.14%);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 21, 53, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 117, 255, 0.4);
+  border-radius: 3px;
+}
+
+.card-gradient {
+  background: linear-gradient(127.09deg, rgba(6, 11, 40, 0.94) 19.41%, rgba(10, 14, 35, 0.49) 76.65%);
+  backdrop-filter: blur(120px);
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  box-shadow: var(--shadow-card);
+}
+
+.navbar-gradient {
+  background: linear-gradient(123.64deg, rgba(255, 255, 255, 0) -22.38%, rgba(255, 255, 255, 0.039) 70.38%);
+  backdrop-filter: blur(120px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.btn-gradient-info {
+  background: linear-gradient(97.89deg, #0075ff 70.67%, #21d4fd 108.55%);
+}
+
+.btn-gradient-primary {
+  background: linear-gradient(97.89deg, #4318ff 70.67%, #9f7aea 108.55%);
+}
+
+.input-gradient-border {
+  background: radial-gradient(94.43% 69.43% at 50% 50%, #ffffff 0%, rgba(255, 255, 255, 0) 100%);
+  padding: 1px;
+  border-radius: var(--radius-lg);
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

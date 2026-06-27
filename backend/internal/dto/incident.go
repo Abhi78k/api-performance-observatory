@@ -14,33 +14,40 @@ type IncidentStatsResponse struct {
 }
 
 type IncidentResponse struct {
-	ID         uint       `json:"id"`
-	EndpointID uint       `json:"endpoint_id"`
-	StartedAt  time.Time  `json:"started_at"`
-	ResolvedAt *time.Time `json:"resolved_at,omitempty"`
-	IsResolved bool       `json:"is_resolved"`
+	ID           uint       `json:"id"`
+	EndpointID   uint       `json:"endpoint_id"`
+	EndpointName string     `json:"endpoint_name"`
+	StartedAt    time.Time  `json:"started_at"`
+	ResolvedAt   *time.Time `json:"resolved_at,omitempty"`
+	IsResolved   bool       `json:"is_resolved"`
 }
 
-func ToIncidentResponse(i models.Incident) IncidentResponse {
+func ToIncidentResponse(i models.Incident, endpointName string) IncidentResponse {
 	return IncidentResponse{
-		ID:         i.ID,
-		EndpointID: i.EndpointID,
-		StartedAt:  i.StartedAt,
-		ResolvedAt: i.ResolvedAt,
-		IsResolved: i.IsResolved,
+		ID:           i.ID,
+		EndpointID:   i.EndpointID,
+		EndpointName: endpointName,
+		StartedAt:    i.StartedAt,
+		ResolvedAt:   i.ResolvedAt,
+		IsResolved:   i.IsResolved,
 	}
 }
 
 func ToIncidentResponses(
 	incidents []models.Incident,
+	endpointNames map[uint]string,
 ) []IncidentResponse {
 
 	response := make([]IncidentResponse, 0, len(incidents))
 
 	for _, incident := range incidents {
+		name := ""
+		if endpointNames != nil {
+			name = endpointNames[incident.EndpointID]
+		}
 		response = append(
 			response,
-			ToIncidentResponse(incident),
+			ToIncidentResponse(incident, name),
 		)
 	}
 

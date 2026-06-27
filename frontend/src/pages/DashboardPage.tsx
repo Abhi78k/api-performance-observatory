@@ -40,7 +40,12 @@ import {
 import { useHealthChecks } from "@/hooks/useHealthChecks";
 import { useActiveIncidents } from "@/hooks/useIncidents";
 import { useEndpoints } from "@/hooks/useEndpoints";
-import { formatMs, formatPercent } from "@/utils/format";
+import {
+  formatPercent,
+  formatLatency,
+  safeNumber,
+  safeInteger,
+} from "@/utils/format";
 
 export function DashboardPage() {
   const [statusPage, setStatusPage] = useState(1);
@@ -59,16 +64,26 @@ export function DashboardPage() {
 
   const endpoints = endpointsQuery.data?.data ?? [];
 
-  const slowest = [...endpoints]
-    .sort((a, b) => (b.response_time ?? 0) - (a.response_time ?? 0))
+  // Deduplicate endpoints by ID to guarantee unique ranking items
+  const uniqueEndpointsMap = new Map<string | number, (typeof endpoints)[0]>();
+  for (const ep of endpoints) {
+    if (!uniqueEndpointsMap.has(ep.id)) {
+      uniqueEndpointsMap.set(ep.id, ep);
+    }
+  }
+  const uniqueEndpoints = Array.from(uniqueEndpointsMap.values());
+
+  const slowest = [...uniqueEndpoints]
+    .filter((e) => safeNumber(e.response_time) > 0)
+    .sort((a, b) => safeNumber(b.response_time) - safeNumber(a.response_time))
     .slice(0, 5)
     .map((e) => ({
       id: e.id,
       name: e.name,
-      value: formatMs(e.response_time ?? 0),
+      value: formatLatency(e.response_time ?? 0),
     }));
 
-  const errorRates = endpoints
+  const errorRates = uniqueEndpoints
     .filter((e) => e.status === "unhealthy" || e.status === "degraded")
     .slice(0, 5)
     .map((e) => ({
@@ -132,7 +147,9 @@ export function DashboardPage() {
             uptime.data ? formatPercent(uptime.data.uptime_percentage) : "—"
           }
           subtitle={
-            uptime.data ? `${uptime.data.total_incidents} incidents` : undefined
+            uptime.data
+              ? `${safeInteger(uptime.data.total_incidents)} incidents`
+              : undefined
           }
           subtitleColor="info"
           icon={TrendingUp}
@@ -145,12 +162,12 @@ export function DashboardPage() {
             title="Avg Response Time"
             value={
               performance.data
-                ? formatMs(performance.data.average_response_time)
+                ? formatLatency(performance.data.average_response_time)
                 : "—"
             }
             subtitle={
               performance.data
-                ? `min ${formatMs(performance.data.min_response_time)}`
+                ? `min ${formatLatency(performance.data.min_response_time)}`
                 : undefined
             }
             icon={Clock}
@@ -215,20 +232,32 @@ export function DashboardPage() {
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
               <MiniStatisticsCard
                 title="Downtime"
-                value={uptime.data ? uptime.data.total_downtime_minutes + "m" : "—"}
+                value={
+                  uptime.data
+                    ? safeNumber(
+                        uptime.data.total_downtime_minutes.toFixed(1),
+                      ) + "m"
+                    : "—"
+                }
                 subtitleColor="error"
                 icon={GlobeX}
                 iconColor="#E31A1A"
               />
               <MiniStatisticsCard
                 title="Avg Incident Duration"
-                value={uptime.data ? uptime.data.average_incident_minutes.toFixed(1) + "m" : "—"}
-                subtitle={
+                value={
                   uptime.data
-                    ? `${uptime.data.total_incidents} incidents`
-                    : undefined
+                    ? safeNumber(uptime.data.average_incident_minutes).toFixed(
+                        1,
+                      ) + "m"
+                    : "—"
                 }
-                subtitleColor="info"
+                // subtitle={
+                //   uptime.data
+                //     ? `${uptime.data.total_incidents} incidents`
+                //     : undefined
+                // }
+                // subtitleColor="info"
                 icon={ClockAlert}
               />
             </div>

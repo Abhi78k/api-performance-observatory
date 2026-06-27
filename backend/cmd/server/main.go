@@ -76,7 +76,7 @@ func main() {
 	authService := services.NewAuthService(cfg, authRepo)
 	monitoringService := services.NewMonitoringService(monitoringRepo)
 	endpointService := services.NewEndpointService(endpointRepo, monitoringService, healthCheckRepo)
-	incidentService := services.NewIncidentService(incidentRepo)
+	incidentService := services.NewIncidentService(incidentRepo, endpointRepo)
 	healthCheckService := services.NewHealthCheckService(endpointRepo, healthCheckRepo, incidentService)
 	schedulerService := services.NewSchedulerService(endpointRepo, healthCheckService)
 	dashboardService := services.NewDashboardService(endpointRepo, healthCheckRepo, incidentRepo, monitoringRepo)

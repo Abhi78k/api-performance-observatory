@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/dto"
-	"github.com/Abhi78k/api-performance-observatory/backend/internal/models"
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/repositories"
 )
 
@@ -198,10 +197,23 @@ func (s *DashboardService) GetStatusPaginated(ctx context.Context, page, limit i
 }
 
 func (s *DashboardService) GetRecentIncidents(ctx context.Context) (
-	[]models.Incident,
+	[]dto.IncidentResponse,
 	error,
 ) {
-	return s.incidentRepo.GetRecentIncidents(ctx)
+	incidents, err := s.incidentRepo.GetRecentIncidents(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	endpoints, err := s.endpointRepo.GetAllEndpoints(ctx)
+	namesMap := make(map[uint]string)
+	if err == nil {
+		for _, ep := range endpoints {
+			namesMap[ep.ID] = ep.Name
+		}
+	}
+
+	return dto.ToIncidentResponses(incidents, namesMap), nil
 }
 
 func (s *DashboardService) GetPerformance(ctx context.Context) (

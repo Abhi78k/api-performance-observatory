@@ -70,7 +70,7 @@ export function IncidentsPage() {
                 to={`/endpoints/${r.endpoint_id}`}
                 className="text-info hover:underline"
               >
-                {r.endpoint_name ?? `Endpoint #${r.endpoint_id}`}
+                {r.endpoint_name && r.endpoint_name.trim() !== "" ? r.endpoint_name : `Endpoint #${r.endpoint_id}`}
               </Link>
             ),
           },

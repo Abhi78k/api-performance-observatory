@@ -3,8 +3,29 @@ export function formatMs(ms: number): string {
   return `${(ms / 1000).toFixed(2)}s`
 }
 
+export function clampPercentage(val: number): number {
+  if (isNaN(val) || !isFinite(val)) return 0
+  return Math.min(100, Math.max(0, val))
+}
+
+export function safeNumber(val: any, defaultVal = 0): number {
+  const num = Number(val)
+  if (isNaN(num) || !isFinite(num) || num < 0) return defaultVal
+  return num
+}
+
+export function safeInteger(val: any): number {
+  return Math.round(safeNumber(val))
+}
+
+export function formatLatency(ms: number): string {
+  const safeMs = safeNumber(ms)
+  return formatMs(safeMs)
+}
+
 export function formatPercent(value: number, decimals = 1): string {
-  return `${value.toFixed(decimals)}%`
+  const clamped = clampPercentage(value)
+  return `${clamped.toFixed(decimals)}%`
 }
 
 export function formatDate(iso: string): string {

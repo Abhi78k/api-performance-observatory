@@ -47,7 +47,8 @@ func (h *IncidentHandler) ListIncidents(c *gin.Context) {
 		return
 	}
 
-	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents), page, limit, total)
+	namesMap := h.incidentService.GetEndpointNamesMap(ctx)
+	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents, namesMap), page, limit, total)
 }
 
 // GetIncidentByID godoc
@@ -88,7 +89,12 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, dto.ToIncidentResponse(*incident))
+	namesMap := h.incidentService.GetEndpointNamesMap(ctx)
+	endpointName := ""
+	if incident != nil {
+		endpointName = namesMap[incident.EndpointID]
+	}
+	utils.OK(c, dto.ToIncidentResponse(*incident, endpointName))
 }
 
 // GetActiveIncidents godoc
@@ -118,7 +124,8 @@ func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
 		return
 	}
 
-	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents), page, limit, total)
+	namesMap := h.incidentService.GetEndpointNamesMap(ctx)
+	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents, namesMap), page, limit, total)
 }
 
 // GetIncidentByEndpointID godoc
@@ -161,5 +168,10 @@ func (h *IncidentHandler) GetIncidentByEndpointID(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, dto.ToIncidentResponse(*incident))
+	namesMap := h.incidentService.GetEndpointNamesMap(ctx)
+	endpointName := ""
+	if incident != nil {
+		endpointName = namesMap[incident.EndpointID]
+	}
+	utils.OK(c, dto.ToIncidentResponse(*incident, endpointName))
 }

@@ -107,7 +107,7 @@ export function HealthChecksPage() {
                 {
                   key: 'endpoint',
                   header: 'Endpoint',
-                  render: (r) => r.endpoint_name ?? `Endpoint #${r.endpoint_id}`,
+                  render: (r) => (r.endpoint_name && r.endpoint_name.trim() !== "" ? r.endpoint_name : `Endpoint #${r.endpoint_id}`),
                 },
                 {
                   key: 'status_code',

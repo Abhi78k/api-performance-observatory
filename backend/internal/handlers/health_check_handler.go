@@ -56,7 +56,8 @@ func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 		return
 	}
 
-	utils.PaginatedOK(c, dto.ToHealthCheckResponses(checks), page, limit, total)
+	namesMap := h.healthCheckService.GetEndpointNamesMap(ctx)
+	utils.PaginatedOK(c, dto.ToHealthCheckResponses(checks, namesMap), page, limit, total)
 }
 
 // GetByEndpointID godoc
@@ -95,5 +96,6 @@ func (h *HealthCheckHandler) GetByEndpointID(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, dto.ToHealthCheckResponses(checks))
+	namesMap := h.healthCheckService.GetEndpointNamesMap(ctx)
+	utils.OK(c, dto.ToHealthCheckResponses(checks, namesMap))
 }

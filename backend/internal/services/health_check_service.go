@@ -224,3 +224,15 @@ func (s *HealthCheckService) GetLatestByEndpointID(
 		endpointID,
 	)
 }
+
+func (s *HealthCheckService) GetEndpointNamesMap(ctx context.Context) map[uint]string {
+	endpoints, err := s.EndpointRepo.GetAllEndpoints(ctx)
+	if err != nil {
+		return map[uint]string{}
+	}
+	namesMap := make(map[uint]string)
+	for _, ep := range endpoints {
+		namesMap[ep.ID] = ep.Name
+	}
+	return namesMap
+}

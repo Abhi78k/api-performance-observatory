@@ -8,6 +8,7 @@ import (
 
 type HealthCheckResponse struct {
 	ID           uint      `json:"id"`
+	Name         string    `json:"endpoint_name"`
 	EndpointID   uint      `json:"endpoint_id"`
 	StatusCode   int       `json:"status_code"`
 	ResponseTime int64     `json:"response_time"`
@@ -25,9 +26,10 @@ type HealthCheckListResponse struct {
 	Data    []HealthCheckResponse `json:"data"`
 }
 
-func ToHealthCheckResponse(h models.HealthCheck) HealthCheckResponse {
+func ToHealthCheckResponse(h models.HealthCheck, endpointName string) HealthCheckResponse {
 	return HealthCheckResponse{
 		ID:           h.ID,
+		Name:         endpointName,
 		EndpointID:   h.EndpointID,
 		StatusCode:   h.StatusCode,
 		ResponseTime: h.ResponseTime,
@@ -38,14 +40,19 @@ func ToHealthCheckResponse(h models.HealthCheck) HealthCheckResponse {
 
 func ToHealthCheckResponses(
 	checks []models.HealthCheck,
+	endpointNames map[uint]string,
 ) []HealthCheckResponse {
 
 	response := make([]HealthCheckResponse, 0, len(checks))
 
 	for _, check := range checks {
+		name := ""
+		if endpointNames != nil {
+			name = endpointNames[check.EndpointID]
+		}
 		response = append(
 			response,
-			ToHealthCheckResponse(check),
+			ToHealthCheckResponse(check, name),
 		)
 	}
 

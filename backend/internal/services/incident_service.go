@@ -11,13 +11,16 @@ import (
 
 type IncidentService struct {
 	incidentRepo repositories.IncidentRepositoryInterface
+	endpointRepo repositories.EndpointRepositoryInterface
 }
 
 func NewIncidentService(
 	incidentRepo repositories.IncidentRepositoryInterface,
+	endpointRepo repositories.EndpointRepositoryInterface,
 ) *IncidentService {
 	return &IncidentService{
 		incidentRepo: incidentRepo,
+		endpointRepo: endpointRepo,
 	}
 }
 
@@ -135,4 +138,16 @@ func (s *IncidentService) GetIncidentsByEndpointID(
 	endpointID uint,
 ) ([]models.Incident, error) {
 	return s.incidentRepo.GetByEndpointID(ctx, endpointID)
+}
+
+func (s *IncidentService) GetEndpointNamesMap(ctx context.Context) map[uint]string {
+	endpoints, err := s.endpointRepo.GetAllEndpoints(ctx)
+	if err != nil {
+		return map[uint]string{}
+	}
+	namesMap := make(map[uint]string)
+	for _, ep := range endpoints {
+		namesMap[ep.ID] = ep.Name
+	}
+	return namesMap
 }

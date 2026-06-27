@@ -38,7 +38,12 @@ export function EndpointsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const { data: endpointsResult, isLoading, isError, refetch } = useEndpoints(page, 10, search, statusFilter);
+  const {
+    data: endpointsResult,
+    isLoading,
+    isError,
+    refetch,
+  } = useEndpoints(page, 10, search, statusFilter);
   const endpoints = endpointsResult?.data ?? [];
   const pagination = endpointsResult?.pagination;
 
@@ -59,7 +64,9 @@ export function EndpointsPage() {
     });
   };
 
-  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStatusFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>,
+  ) => {
     setStatusFilter(e.target.value);
     setSearchParams((prev) => {
       prev.set("page", "1");
@@ -136,12 +143,14 @@ export function EndpointsPage() {
 
       <Card>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
+          <div>{<Search className="h-4 w-4 mt-2.5"></Search>}</div>
           <div className="flex-1">
             <Input
-              placeholder="    Search endpoints..."
-              icon={<Search className="h-4 w-4" />}
+              placeholder="Search endpoints..."
+              // icon={<Search className="h-4 w-4" />}
               value={search}
               onChange={handleSearchChange}
+              className="placeholder:pl-4"
             />
           </div>
           <Select

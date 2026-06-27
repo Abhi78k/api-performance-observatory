@@ -95,15 +95,18 @@ func (h *EndpointHandler) GetEndpoints(c *gin.Context) {
 	ctx := c.Request.Context()
 
 	userID := c.MustGet("UserID").(uint)
+	page, limit := utils.GetPaginationParams(c)
+	search := c.Query("search")
+	status := c.Query("status")
 
-	endpoints, err := h.endpointService.GetEndpoints(ctx, userID)
+	endpoints, total, err := h.endpointService.GetEndpointsPaginated(ctx, userID, page, limit, search, status)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
 		return
 	}
 
-	utils.OK(c, endpoints)
+	utils.PaginatedOK(c, endpoints, page, limit, total)
 }
 
 // GetEndpoint godoc

@@ -1,9 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as endpointsApi from '@/api/endpoints'
 import * as dashboardApi from '@/api/dashboard'
 import * as healthchecksApi from '@/api/healthchecks'
 import { mockEndpoints } from '@/mocks/data'
-import type { EndpointCreateUpdate } from '@/types/api'
+import type { Endpoint, EndpointCreateUpdate } from '@/types/api'
 
 const USE_MOCK_FALLBACK = import.meta.env.VITE_USE_MOCK !== 'false'
 
@@ -16,32 +16,29 @@ async function withMockFallback<T>(fn: () => Promise<T>, mock: T): Promise<T> {
   }
 }
 
-export function useEndpoints() {
+export function useEndpoints(page?: number, limit?: number, search?: string, status?: string) {
   return useQuery({
-    queryKey: ['endpoints'],
+    queryKey: ['endpoints', page, limit, search, status],
     queryFn: () =>
       withMockFallback(async () => {
-        const [endpoints, statuses, healthChecks] = await Promise.all([
-          endpointsApi.list(),
-          dashboardApi.status().catch(() => []),
-          healthchecksApi.list().catch(() => []),
-        ])
-
-        return endpoints.map((ep) => {
-          const statusItem = statuses.find((s) => String(s.endpoint_id) === String(ep.id))
-          const checks = healthChecks.filter((h) => String(h.endpoint_id) === String(ep.id))
-          const latestCheck = checks.length > 0
-            ? [...checks].sort((a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime())[0]
-            : undefined
-
-          return {
-            ...ep,
-            status: statusItem?.status ?? (latestCheck?.success ? 'healthy' : latestCheck ? 'unhealthy' : 'unknown'),
-            response_time: latestCheck?.response_time ?? undefined,
-            last_checked: latestCheck?.checked_at ?? ep.last_checked,
-          }
-        })
-      }, mockEndpoints),
+        const result = await endpointsApi.list(page, limit, search, status)
+        return result
+      }, {
+        data: mockEndpoints.filter((ep) => {
+          const matchesSearch = !search || ep.name.toLowerCase().includes(search.toLowerCase()) || ep.url.toLowerCase().includes(search.toLowerCase())
+          const matchesStatus = !status || status === 'all' || ep.status === status
+          return matchesSearch && matchesStatus
+        }).slice(((page ?? 1) - 1) * (limit ?? 10), (page ?? 1) * (limit ?? 10)),
+        pagination: {
+          page: page ?? 1,
+          limit: limit ?? 10,
+          totalItems: mockEndpoints.length,
+          totalPages: Math.ceil(mockEndpoints.length / (limit ?? 10)),
+          hasNext: (page ?? 1) * (limit ?? 10) < mockEndpoints.length,
+          hasPrevious: (page ?? 1) > 1,
+        }
+      }),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -50,13 +47,14 @@ export function useEndpoint(id: string | number | undefined) {
     queryKey: ['endpoints', id],
     queryFn: () =>
       withMockFallback(async () => {
-        const [ep, statuses, healthChecks] = await Promise.all([
+        const [ep, statusResult, healthChecks] = await Promise.all([
           endpointsApi.get(id!),
-          dashboardApi.status().catch(() => []),
+          dashboardApi.status(1, 100).catch(() => ({ data: [] })),
           healthchecksApi.byEndpoint(id!).catch(() => []),
         ])
 
-        const statusItem = statuses.find((s) => String(s.endpoint_id) === String(ep.id))
+        const statuses = 'data' in statusResult ? statusResult.data : statusResult
+        const statusItem = Array.isArray(statuses) ? statuses.find((s: any) => String(s.endpoint_id) === String(ep.id)) : undefined
         const latestCheck = healthChecks.length > 0
           ? [...healthChecks].sort((a, b) => new Date(b.checked_at).getTime() - new Date(a.checked_at).getTime())[0]
           : undefined
@@ -66,8 +64,8 @@ export function useEndpoint(id: string | number | undefined) {
           status: statusItem?.status ?? (latestCheck?.success ? 'healthy' : latestCheck ? 'unhealthy' : 'unknown'),
           response_time: latestCheck?.response_time ?? undefined,
           last_checked: latestCheck?.checked_at ?? ep.last_checked,
-        }
-      }, mockEndpoints.find((e) => String(e.id) === String(id))!),
+        } as Endpoint
+      }, mockEndpoints.find((e) => String(e.id) === String(id)) as Endpoint),
     enabled: !!id,
   })
 }

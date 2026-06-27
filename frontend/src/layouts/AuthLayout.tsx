@@ -1,16 +1,21 @@
-import { Link } from 'react-router-dom'
-import { Globe2 } from 'lucide-react'
-import { Typography } from '@/components/ui'
-import type { ReactNode } from 'react'
+import { Link } from "react-router-dom";
+import { Globe2 } from "lucide-react";
+import { Typography } from "@/components/ui";
+import type { ReactNode } from "react";
 
 interface AuthLayoutProps {
-  title: string
-  description: string
-  children: ReactNode
-  footer?: ReactNode
+  title: string;
+  description: string;
+  children: ReactNode;
+  footer?: ReactNode;
 }
 
-export function AuthLayout({ title, description, children, footer }: AuthLayoutProps) {
+export function AuthLayout({
+  title,
+  description,
+  children,
+  footer,
+}: AuthLayoutProps) {
   return (
     <div className="flex min-h-screen">
       <div className="hidden w-1/2 flex-col justify-between bg-gradient-to-br from-[#0f123b] via-[#090d2e] to-[#020515] p-12 lg:flex">
@@ -23,10 +28,19 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
           </Typography>
         </div>
         <div>
-          <Typography variant="caption" color="text" className="uppercase tracking-widest">
+          <Typography
+            variant="caption"
+            color="text"
+            className="uppercase tracking-widest"
+          >
             Global API Monitoring Platform
           </Typography>
-          <Typography variant="h2" color="white" fontWeight="bold" className="mt-2 max-w-md">
+          <Typography
+            variant="h2"
+            color="white"
+            fontWeight="bold"
+            className="mt-2 max-w-md"
+          >
             Monitor endpoint health, response times, and incidents worldwide
           </Typography>
         </div>
@@ -48,7 +62,12 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
             </Link>
           </div>
 
-          <Typography variant="h4" color="white" fontWeight="bold" className="mb-1">
+          <Typography
+            variant="h4"
+            color="white"
+            fontWeight="bold"
+            className="mb-1"
+          >
             {title}
           </Typography>
           <Typography variant="body2" color="text" className="mb-8">
@@ -61,5 +80,5 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
         </div>
       </div>
     </div>
-  )
+  );
 }

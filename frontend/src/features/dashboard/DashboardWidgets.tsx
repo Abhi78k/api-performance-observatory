@@ -5,6 +5,7 @@ import {
   Typography,
   ErrorState,
   CardSkeleton,
+  Button,
 } from "@/components/ui";
 import { formatDate, getStatusColor } from "@/utils/format";
 import type {
@@ -19,6 +20,11 @@ interface EndpointStatusListProps {
   isLoading: boolean;
   isError: boolean;
   onRetry: () => void;
+  page?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
 }
 
 export function EndpointStatusList({
@@ -26,6 +32,11 @@ export function EndpointStatusList({
   isLoading,
   isError,
   onRetry,
+  page,
+  totalPages,
+  onPageChange,
+  hasNext,
+  hasPrevious,
 }: EndpointStatusListProps) {
   if (isLoading) return <CardSkeleton />;
   if (isError)
@@ -59,6 +70,33 @@ export function EndpointStatusList({
           </Link>
         ))}
       </div>
+      {totalPages && totalPages > 1 && onPageChange && (
+        <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3">
+          <Typography variant="caption" color="text">
+            Page {page} of {totalPages}
+          </Typography>
+          <div className="flex gap-2">
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={!hasPrevious}
+              onClick={() => onPageChange(page! - 1)}
+              className="h-8 px-2 py-0 text-xs"
+            >
+              Prev
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={!hasNext}
+              onClick={() => onPageChange(page! + 1)}
+              className="h-8 px-2 py-0 text-xs"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 }
@@ -99,7 +137,7 @@ export function IncidentTimeline({
         </Typography>
       ) : (
         <div className="space-y-3">
-          {incidents.map((inc) => {
+          {incidents.map((inc, idx) => {
             const name =
               "endpoint_name" in inc && inc.endpoint_name
                 ? inc.endpoint_name
@@ -107,7 +145,7 @@ export function IncidentTimeline({
                   `Endpoint #${inc.endpoint_id}`);
             return (
               <div
-                key={inc.id}
+                key={`${inc.id}-${idx}`}
                 className="flex items-start gap-3 border-l-2 border-error/50 pl-3"
               >
                 <div className="flex-1">
@@ -203,7 +241,7 @@ export function RankedEndpoints({ title, items }: RankedEndpointsProps) {
       <Typography variant="lg" color="white" fontWeight="bold" className="mb-4">
         {title}
       </Typography>
-      <div className="space-y-2">
+      <div className="space-y-3 flex flex-col gap-[1.5px]">
         {items.map((item, i) => (
           <Link
             key={item.id}

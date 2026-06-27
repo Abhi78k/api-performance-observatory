@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"strings"
-
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/auth"
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/config"
 	"github.com/gin-gonic/gin"
@@ -10,32 +8,14 @@ import (
 
 func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// retrieve the header from jwt token
-		header := c.GetHeader("Authorization")
-
-		// if header empty, return error
-		if header == "" {
+		tokenString, err := c.Cookie("access_token")
+		if err != nil {
 			c.JSON(401, gin.H{
-				"error": "authorization header required.",
+				"error": "unauthorized: access token cookie missing.",
 			})
 			c.Abort()
 			return
 		}
-
-		// extract token
-		parts := strings.Split(header, " ")
-
-		// verify token format
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(401, gin.H{
-				"error": "invalid authorization format.",
-			})
-			c.Abort()
-			return
-		}
-
-		// extract the token string
-		tokenString := parts[1]
 
 		token, err := auth.ValidateToken(cfg, tokenString)
 

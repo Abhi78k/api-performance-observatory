@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/models"
 	"gorm.io/gorm"
@@ -11,6 +12,12 @@ type HealthCheckRepositoryInterface interface {
 	Create(ctx context.Context, check *models.HealthCheck) error
 	GetByEndpointID(ctx context.Context, endpointID uint) ([]models.HealthCheck, error)
 	GetAll(ctx context.Context) ([]models.HealthCheck, error)
+	GetAllPaginated(
+		ctx context.Context,
+		offset, limit int,
+		endpointID uint,
+		success string,
+	) ([]models.HealthCheck, int64, error)
 	GetLatestByEndpointID(
 		ctx context.Context,
 		endpointID uint,
@@ -66,4 +73,34 @@ func (r *HealthCheckRepository) GetLatestByEndpointID(
 	}
 
 	return &check, nil
+}
+
+func (r *HealthCheckRepository) GetAllPaginated(
+	ctx context.Context,
+	offset, limit int,
+	endpointID uint,
+	success string,
+) ([]models.HealthCheck, int64, error) {
+
+	var checks []models.HealthCheck
+	var total int64
+
+	db := r.DB.WithContext(ctx).Model(&models.HealthCheck{})
+
+	if endpointID > 0 {
+		db = db.Where("endpoint_id = ?", endpointID)
+	}
+
+	if success != "" && success != "all" {
+		if s, err := strconv.ParseBool(success); err == nil {
+			db = db.Where("success = ?", s)
+		}
+	}
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := db.Order("checked_at DESC").Offset(offset).Limit(limit).Find(&checks).Error
+	return checks, total, err
 }

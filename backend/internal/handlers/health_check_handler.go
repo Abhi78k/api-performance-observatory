@@ -37,14 +37,26 @@ func NewHealthCheckHandler(healthCheckService *services.HealthCheckService) *Hea
 func (h *HealthCheckHandler) GetAllHealthChecks(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	checks, err := h.healthCheckService.GetAll(ctx)
+	page, limit := utils.GetPaginationParams(c)
+
+	endpointIDStr := c.Query("endpoint_id")
+	var endpointID uint
+	if endpointIDStr != "" {
+		if id, err := strconv.ParseUint(endpointIDStr, 10, 64); err == nil {
+			endpointID = uint(id)
+		}
+	}
+
+	success := c.Query("success")
+
+	checks, total, err := h.healthCheckService.GetAllPaginated(ctx, page, limit, endpointID, success)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
 		return
 	}
 
-	utils.OK(c, dto.ToHealthCheckResponses(checks))
+	utils.PaginatedOK(c, dto.ToHealthCheckResponses(checks), page, limit, total)
 }
 
 // GetByEndpointID godoc

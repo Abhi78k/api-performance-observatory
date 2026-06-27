@@ -28,9 +28,9 @@ export function EndpointDetailsPage() {
   const stats = useEndpointStats(id)
   const monitoring = useEndpointMonitoring(id)
   const healthChecks = useEndpointHealthChecks(id)
-  const incidentsQuery = useIncidents()
+  const incidentsQuery = useIncidents(1, 100)
 
-  const incidents = incidentsQuery.data ?? []
+  const incidents = incidentsQuery.data?.data ?? []
   const endpointIncidents = incidents.filter(
     (i) => String(i.endpoint_id) === String(id),
   )

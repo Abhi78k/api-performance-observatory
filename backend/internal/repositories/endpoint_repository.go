@@ -17,6 +17,16 @@ type EndpointRepositoryInterface interface {
 		ctx context.Context,
 		userID uint,
 	) ([]models.Endpoint, error)
+	GetByUserIDPaginated(
+		ctx context.Context,
+		userID uint,
+		offset, limit int,
+		search, status string,
+	) ([]models.Endpoint, int64, error)
+	GetAllEndpointsPaginated(
+		ctx context.Context,
+		offset, limit int,
+	) ([]models.Endpoint, int64, error)
 	GetByID(
 		ctx context.Context,
 		id string,
@@ -104,4 +114,50 @@ func (r *EndpointRepository) Delete(
 	endpoint *models.Endpoint,
 ) error {
 	return r.db.WithContext(ctx).Delete(endpoint).Error
+}
+
+func (r *EndpointRepository) GetByUserIDPaginated(
+	ctx context.Context,
+	userID uint,
+	offset, limit int,
+	search, status string,
+) ([]models.Endpoint, int64, error) {
+
+	var endpoints []models.Endpoint
+	var total int64
+
+	db := r.db.WithContext(ctx).Model(&models.Endpoint{}).Where("user_id = ?", userID)
+
+	if search != "" {
+		db = db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(url) LIKE LOWER(?)", "%"+search+"%", "%"+search+"%")
+	}
+
+	if status != "" && status != "all" {
+		db = db.Where("(SELECT success FROM health_checks WHERE health_checks.endpoint_id = endpoints.id ORDER BY checked_at DESC LIMIT 1) = ?", status == "healthy")
+	}
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := db.Offset(offset).Limit(limit).Find(&endpoints).Error
+	return endpoints, total, err
+}
+
+func (r *EndpointRepository) GetAllEndpointsPaginated(
+	ctx context.Context,
+	offset, limit int,
+) ([]models.Endpoint, int64, error) {
+
+	var endpoints []models.Endpoint
+	var total int64
+
+	db := r.db.WithContext(ctx).Model(&models.Endpoint{})
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := db.Offset(offset).Limit(limit).Find(&endpoints).Error
+	return endpoints, total, err
 }

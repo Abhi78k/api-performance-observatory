@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import * as dashboardApi from '@/api/dashboard'
 import * as healthchecksApi from '@/api/healthchecks'
 import {
@@ -31,10 +31,25 @@ export function useDashboardOverview() {
   })
 }
 
-export function useDashboardStatus() {
+export function useDashboardStatus(page?: number, limit?: number) {
   return useQuery({
-    queryKey: ['dashboard', 'status'],
-    queryFn: () => withMockFallback(dashboardApi.status, mockStatus),
+    queryKey: ['dashboard', 'status', page, limit],
+    queryFn: () =>
+      withMockFallback(
+        () => dashboardApi.status(page, limit),
+        {
+          data: mockStatus.slice(((page ?? 1) - 1) * (limit ?? 10), (page ?? 1) * (limit ?? 10)),
+          pagination: {
+            page: page ?? 1,
+            limit: limit ?? 10,
+            totalItems: mockStatus.length,
+            totalPages: Math.ceil(mockStatus.length / (limit ?? 10)),
+            hasNext: (page ?? 1) * (limit ?? 10) < mockStatus.length,
+            hasPrevious: (page ?? 1) > 1,
+          }
+        }
+      ),
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -78,7 +93,8 @@ export function useResponseTimeChart() {
     queryKey: ['dashboard', 'response-time-chart'],
     queryFn: async () => {
       try {
-        const checks = await healthchecksApi.list()
+        const result = await healthchecksApi.list(1, 1000)
+        const checks = result?.data ?? []
         if (!checks || checks.length === 0) return mockResponseTimeChart
 
         const now = new Date()
@@ -122,7 +138,8 @@ export function useRequestVolumeChart() {
     queryKey: ['dashboard', 'request-volume-chart'],
     queryFn: async () => {
       try {
-        const checks = await healthchecksApi.list()
+        const result = await healthchecksApi.list(1, 1000)
+        const checks = result?.data ?? []
         if (!checks || checks.length === 0) return mockRequestVolumeChart
 
         const now = new Date()

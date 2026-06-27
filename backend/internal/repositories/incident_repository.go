@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/models"
 	"gorm.io/gorm"
@@ -26,6 +27,11 @@ type IncidentRepositoryInterface interface {
 		endpointID uint,
 	) ([]models.Incident, error)
 	GetAllIncidents(ctx context.Context) ([]models.Incident, error)
+	GetIncidentsPaginated(
+		ctx context.Context,
+		isResolvedStr string,
+		offset, limit int,
+	) ([]models.Incident, int64, error)
 	GetIncidentByID(ctx context.Context, id uint) (*models.Incident, error)
 	GetActiveIncidents(ctx context.Context) (
 		[]models.Incident,
@@ -159,4 +165,30 @@ func (r *IncidentRepository) GetRecentIncidents(ctx context.Context) (
 	}
 
 	return incidents, nil
+}
+
+func (r *IncidentRepository) GetIncidentsPaginated(
+	ctx context.Context,
+	isResolvedStr string,
+	offset, limit int,
+) ([]models.Incident, int64, error) {
+
+	var incidents []models.Incident
+	var total int64
+
+	db := r.db.WithContext(ctx).Model(&models.Incident{})
+
+	if isResolvedStr != "" && isResolvedStr != "all" {
+		isResolved, err := strconv.ParseBool(isResolvedStr)
+		if err == nil {
+			db = db.Where("is_resolved = ?", isResolved)
+		}
+	}
+
+	if err := db.Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	err := db.Order("started_at DESC").Offset(offset).Limit(limit).Find(&incidents).Error
+	return incidents, total, err
 }

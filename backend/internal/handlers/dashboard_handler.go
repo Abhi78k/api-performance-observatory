@@ -62,14 +62,16 @@ func (h *DashboardHandler) GetOverview(c *gin.Context) {
 func (h *DashboardHandler) GetStatus(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	data, err := h.dashboadService.GetStatus(ctx)
+	page, limit := utils.GetPaginationParams(c)
+
+	data, total, err := h.dashboadService.GetStatusPaginated(ctx, page, limit)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
 		return
 	}
 
-	utils.OK(c, data)
+	utils.PaginatedOK(c, data, page, limit, total)
 }
 
 // GetRecentIncidents godoc

@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -68,4 +70,48 @@ func Conflict(c *gin.Context, err string) {
 
 func Forbidden(c *gin.Context, err string) {
 	Error(c, http.StatusForbidden, err)
+}
+
+func GetPaginationParams(c *gin.Context) (page int, limit int) {
+	pageStr := c.Query("page")
+	limitStr := c.Query("limit")
+
+	page = 1
+	if pageStr != "" {
+		if p, err := strconv.Atoi(pageStr); err == nil && p > 0 {
+			page = p
+		}
+	}
+
+	limit = 10
+	if limitStr != "" {
+		if l, err := strconv.Atoi(limitStr); err == nil && l > 0 {
+			limit = l
+		}
+	}
+
+	if limit > 100 {
+		limit = 100
+	}
+
+	return page, limit
+}
+
+func PaginatedOK(c *gin.Context, data any, page, limit int, totalItems int64) {
+	totalPages := int(math.Ceil(float64(totalItems) / float64(limit)))
+	if totalPages < 0 {
+		totalPages = 0
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    data,
+		"pagination": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"totalItems":  totalItems,
+			"totalPages":  totalPages,
+			"hasNext":     page < totalPages,
+			"hasPrevious": page > 1,
+		},
+	})
 }

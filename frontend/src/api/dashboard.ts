@@ -17,10 +17,21 @@ export async function overview(): Promise<DashboardOverview> {
   return data.data
 }
 
-export async function status(): Promise<DashboardStatusItem[]> {
-  const { data } = await apiClient.get<ApiResponse<DashboardStatusItem[]>>('/dashboard/status')
+export async function status(page?: number, limit?: number): Promise<{ data: DashboardStatusItem[]; pagination: any }> {
+  let url = '/dashboard/status'
+  const params = new URLSearchParams()
+  if (page) params.set('page', String(page))
+  if (limit) params.set('limit', String(limit))
+
+  const queryStr = params.toString()
+  if (queryStr) url += `?${queryStr}`
+
+  const { data } = await apiClient.get<ApiResponse<DashboardStatusItem[]>>(url)
   if (!data.success || !data.data) throw new Error('Failed to fetch endpoint status')
-  return data.data
+  return {
+    data: data.data,
+    pagination: (data as any).pagination,
+  }
 }
 
 export async function monitoring(): Promise<DashboardMonitoringItem[]> {

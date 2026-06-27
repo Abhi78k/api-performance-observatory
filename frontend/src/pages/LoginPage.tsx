@@ -19,20 +19,21 @@ export function LoginPage() {
     setLoading(true)
 
     try {
-      const result = await login({ email, password })
-      setAuth(result.access_token, { id: 0, email })
+      await login({ email, password })
       try {
         const user = await me()
-        useAuthStore.getState().setUser(user)
+        setAuth(user)
       } catch (err) {
         console.error('Failed to fetch user profile:', err)
+        setError('Failed to fetch user profile after login.')
+        return
       }
       navigate('/')
 
     } catch {
       // Mock fallback for development when backend is unavailable
       if (import.meta.env.VITE_USE_MOCK !== 'false') {
-        setAuth('mock-jwt-token', { id: 1, email })
+        setAuth({ id: 1, email })
         navigate('/')
       } else {
         setError('Invalid email or password. Please try again.')

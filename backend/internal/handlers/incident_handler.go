@@ -37,14 +37,17 @@ func NewIncidentHandler(incidentService *services.IncidentService) *IncidentHand
 func (h *IncidentHandler) ListIncidents(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	incidents, err := h.incidentService.GetAllIncidents(ctx)
+	page, limit := utils.GetPaginationParams(c)
+	isResolvedStr := c.Query("is_resolved")
+
+	incidents, total, err := h.incidentService.GetIncidentsPaginated(ctx, isResolvedStr, page, limit)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
 		return
 	}
 
-	utils.OK(c, dto.ToIncidentResponses(incidents))
+	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents), page, limit, total)
 }
 
 // GetIncidentByID godoc
@@ -106,14 +109,16 @@ func (h *IncidentHandler) GetIncidentByID(c *gin.Context) {
 func (h *IncidentHandler) GetActiveIncidents(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	incidents, err := h.incidentService.GetActiveIncidents(ctx)
+	page, limit := utils.GetPaginationParams(c)
+
+	incidents, total, err := h.incidentService.GetActiveIncidentsPaginated(ctx, page, limit)
 
 	if err != nil {
 		utils.Internal(c, err.Error())
 		return
 	}
 
-	utils.OK(c, dto.ToIncidentResponses(incidents))
+	utils.PaginatedOK(c, dto.ToIncidentResponses(incidents), page, limit, total)
 }
 
 // GetIncidentByEndpointID godoc

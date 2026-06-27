@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Activity,
   AlertTriangle,
@@ -7,6 +8,9 @@ import {
   Server,
   TrendingUp,
   XCircle,
+  GlobeX,
+  GlobeOff,
+  ClockAlert,
 } from "lucide-react";
 import { MonitoringGlobe } from "@/components/Globe/MonitoringGlobe";
 import {
@@ -39,8 +43,10 @@ import { useEndpoints } from "@/hooks/useEndpoints";
 import { formatMs, formatPercent } from "@/utils/format";
 
 export function DashboardPage() {
+  const [statusPage, setStatusPage] = useState(1);
+
   const overview = useDashboardOverview();
-  const status = useDashboardStatus();
+  const status = useDashboardStatus(statusPage, 10);
   const performance = useDashboardPerformance();
   const successRate = useDashboardSuccessRate();
   const uptime = useDashboardUptime();
@@ -49,9 +55,9 @@ export function DashboardPage() {
   const healthChecks = useHealthChecks();
   const responseChart = useResponseTimeChart();
   const volumeChart = useRequestVolumeChart();
-  const endpointsQuery = useEndpoints();
+  const endpointsQuery = useEndpoints(1, 100);
 
-  const endpoints = endpointsQuery.data ?? [];
+  const endpoints = endpointsQuery.data?.data ?? [];
 
   const slowest = [...endpoints]
     .sort((a, b) => (b.response_time ?? 0) - (a.response_time ?? 0))
@@ -88,8 +94,8 @@ export function DashboardPage() {
   const data = overview.data!;
 
   return (
-    <div className="space-y-6">
-      <div>
+    <div className="space-y-4">
+      {/*<div>
         <Typography variant="h5" color="white" fontWeight="bold">
           Global Overview
         </Typography>
@@ -97,7 +103,7 @@ export function DashboardPage() {
           Real-time API monitoring across {data.monitored_endpoints} endpoints
           worldwide
         </Typography>
-      </div>
+      </div>*/}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MiniStatisticsCard
@@ -165,15 +171,30 @@ export function DashboardPage() {
           />
           <MiniStatisticsCard
             title="Active Incidents"
-            value={activeIncidents.data?.length ?? 0}
+            value={activeIncidents.data?.data?.length ?? 0}
             subtitleColor="error"
             icon={AlertTriangle}
             iconColor="#E31A1A"
           />
+          <MiniStatisticsCard
+            title="Total Endpoints"
+            value={data.total_endpoints}
+            icon={Server}
+          />
+          <MiniStatisticsCard
+            title="Failure Rate"
+            value={
+              successRate.data
+                ? formatPercent(successRate.data.failure_rate)
+                : "—"
+            }
+            icon={GlobeOff}
+            iconColor="#01B574"
+          />
         </div>
 
         <div className="lg:col-span-6">
-          <Card className="relative h-[420px] overflow-hidden !p-0">
+          <Card className="relative h-[420px] overflow-hidden !p-0 mb-4.5">
             <div className="absolute inset-x-0 top-4 z-10 text-center">
               <Typography
                 variant="subtitle1"
@@ -190,14 +211,39 @@ export function DashboardPage() {
             </div>
             <MonitoringGlobe className="h-full w-full" />
           </Card>
+          <div className="grid gap-4 lg:col-span-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+              <MiniStatisticsCard
+                title="Downtime"
+                value={uptime.data ? uptime.data.total_downtime_minutes + "m" : "—"}
+                subtitleColor="error"
+                icon={GlobeX}
+                iconColor="#E31A1A"
+              />
+              <MiniStatisticsCard
+                title="Avg Incident Duration"
+                value={uptime.data ? uptime.data.average_incident_minutes.toFixed(1) + "m" : "—"}
+                subtitle={
+                  uptime.data
+                    ? `${uptime.data.total_incidents} incidents`
+                    : undefined
+                }
+                subtitleColor="info"
+                icon={ClockAlert}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="lg:col-span-3 space-y-4">
-          <RankedEndpoints title="Top Slowest Endpoints" items={slowest} />
+          <RankedEndpoints
+            title="Top Slowest Endpoints"
+            items={slowest.splice(0, 4)}
+          />
           <RankedEndpoints
             title="Top Error Rates"
             items={
-              errorRates.length
+              errorRates.splice(0, 1).length
                 ? errorRates
                 : slowest.slice(0, 3).map((e) => ({ ...e, value: "0.5%" }))
             }
@@ -225,13 +271,18 @@ export function DashboardPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <EndpointStatusList
-          items={status.data}
+          items={status.data?.data}
           isLoading={status.isLoading}
           isError={status.isError}
           onRetry={() => status.refetch()}
+          page={statusPage}
+          totalPages={status.data?.pagination?.totalPages}
+          onPageChange={setStatusPage}
+          hasNext={status.data?.pagination?.hasNext}
+          hasPrevious={status.data?.pagination?.hasPrevious}
         />
         <HealthCheckList
-          checks={healthChecks.data}
+          checks={healthChecks.data?.data}
           isLoading={healthChecks.isLoading}
           isError={healthChecks.isError}
           onRetry={() => healthChecks.refetch()}
@@ -244,7 +295,7 @@ export function DashboardPage() {
         />
       </div>
 
-      {uptime.data && (
+      {/*{uptime.data && (
         <Card>
           <Typography
             variant="lg"
@@ -291,7 +342,7 @@ export function DashboardPage() {
             </div>
           </div>
         </Card>
-      )}
+      )}*/}
     </div>
   );
 }

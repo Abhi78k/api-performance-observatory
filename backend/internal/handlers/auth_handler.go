@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/dto"
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/services"
@@ -71,7 +72,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 //
 // @Param request body dto.LoginRequest true "Login credentials"
 //
-// @Success 200 {object} dto.LoginSuccessResponse
+// @Success 200 {object} dto.MessageResponse
 // @Failure 400 {object} utils.ValidationErrorResponse
 // @Failure 401 {object} utils.ErrorResponse
 //
@@ -100,9 +101,15 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	utils.OK(c, dto.LoginResponse{
-		AccessToken: accessToken,
-	})
+	secure := false
+	if c.Request.TLS != nil || gin.Mode() == gin.ReleaseMode || os.Getenv("ENV") == "production" || os.Getenv("APP_ENV") == "production" {
+		secure = true
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("access_token", accessToken, 86400, "/", "", secure, true)
+
+	utils.Message(c, http.StatusOK, "Login successful")
 }
 
 // GetMe godoc
@@ -148,4 +155,27 @@ func (h *AuthHandler) GetMe(c *gin.Context) {
 		ID:    user.ID,
 		Email: user.Email,
 	})
+}
+
+// Logout godoc
+//
+// @Summary Log out user
+// @Description Logs out the current user by clearing the HttpOnly access_token cookie.
+// @Tags Authentication
+// @Accept json
+// @Produce json
+//
+// @Success 200 {object} dto.MessageResponse
+//
+// @Router /auth/logout [post]
+func (h *AuthHandler) Logout(c *gin.Context) {
+	secure := false
+	if c.Request.TLS != nil || gin.Mode() == gin.ReleaseMode || os.Getenv("ENV") == "production" || os.Getenv("APP_ENV") == "production" {
+		secure = true
+	}
+
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie("access_token", "", -1, "/", "", secure, true)
+
+	utils.Message(c, http.StatusOK, "Logout successful")
 }

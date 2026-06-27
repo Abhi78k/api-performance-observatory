@@ -3,24 +3,32 @@ import { persist } from 'zustand/middleware'
 import type { User } from '@/types/api'
 
 interface AuthState {
-  token: string | null
   user: User | null
   isAuthenticated: boolean
-  setAuth: (token: string, user: User) => void
+  isCheckingAuth: boolean
+  setAuth: (user: User) => void
   setUser: (user: User) => void
+  setCheckingAuth: (isCheckingAuth: boolean) => void
   logout: () => void
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      token: null,
       user: null,
       isAuthenticated: false,
-      setAuth: (token, user) => set({ token, user, isAuthenticated: true }),
+      isCheckingAuth: true,
+      setAuth: (user) => set({ user, isAuthenticated: true, isCheckingAuth: false }),
       setUser: (user) => set({ user }),
-      logout: () => set({ token: null, user: null, isAuthenticated: false }),
+      setCheckingAuth: (isCheckingAuth) => set({ isCheckingAuth }),
+      logout: () => set({ user: null, isAuthenticated: false, isCheckingAuth: false }),
     }),
-    { name: 'apo-auth' },
+    {
+      name: 'apo-auth',
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+      }),
+    },
   ),
 )

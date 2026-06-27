@@ -11,16 +11,19 @@ import (
 type EndpointService struct {
 	endpointRepo      repositories.EndpointRepositoryInterface
 	monitoringService *MonitoringService
+	healthCheckRepo   repositories.HealthCheckRepositoryInterface
 }
 
 func NewEndpointService(
 	endpointRepo repositories.EndpointRepositoryInterface,
 	monitoringService *MonitoringService,
+	healthCheckRepo repositories.HealthCheckRepositoryInterface,
 ) *EndpointService {
 
 	return &EndpointService{
 		endpointRepo:      endpointRepo,
 		monitoringService: monitoringService,
+		healthCheckRepo:   healthCheckRepo,
 	}
 }
 
@@ -69,6 +72,36 @@ func (s *EndpointService) GetEndpoints(
 ) ([]models.Endpoint, error) {
 
 	return s.endpointRepo.GetAllByUserID(ctx, userID)
+}
+
+func (s *EndpointService) GetEndpointsPaginated(
+	ctx context.Context,
+	userID uint,
+	page, limit int,
+	search, status string,
+) ([]models.Endpoint, int64, error) {
+	offset := (page - 1) * limit
+	endpoints, total, err := s.endpointRepo.GetByUserIDPaginated(ctx, userID, offset, limit, search, status)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	for i := range endpoints {
+		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(ctx, endpoints[i].ID)
+		if err == nil && latestCheck != nil {
+			if latestCheck.Success {
+				endpoints[i].Status = "healthy"
+			} else {
+				endpoints[i].Status = "unhealthy"
+			}
+			endpoints[i].ResponseTime = latestCheck.ResponseTime
+			endpoints[i].LastChecked = &latestCheck.CheckedAt
+		} else {
+			endpoints[i].Status = "unknown"
+		}
+	}
+
+	return endpoints, total, nil
 }
 
 func (s *EndpointService) GetEndpoint(

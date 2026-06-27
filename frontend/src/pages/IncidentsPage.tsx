@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import {
   Badge,
@@ -8,17 +8,46 @@ import {
   Table,
   TableSkeleton,
   Typography,
+  Pagination,
 } from "@/components/ui";
-import { useIncidents } from "@/hooks/useIncidents";
+import { useIncidents, useActiveIncidents } from "@/hooks/useIncidents";
 import { formatDate, formatDuration, getStatusColor } from "@/utils/format";
 
 export function IncidentsPage() {
-  const { data, isLoading, isError, refetch } = useIncidents();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activePage = Number(searchParams.get("activePage") ?? "1");
+  const historicalPage = Number(searchParams.get("historicalPage") ?? "1");
 
-  const active = (data ?? []).filter((i) => !i.is_resolved);
-  const historical = (data ?? []).filter((i) => i.is_resolved);
+  const activeQuery = useActiveIncidents(activePage, 5);
+  const activeIncidents = activeQuery.data?.data ?? [];
+  const activePagination = activeQuery.data?.pagination;
 
-  const renderTable = (items: typeof data) => {
+  const historicalQuery = useIncidents(historicalPage, 10, "true");
+  const historicalIncidents = historicalQuery.data?.data ?? [];
+  const historicalPagination = historicalQuery.data?.pagination;
+
+  const isLoading = activeQuery.isLoading || historicalQuery.isLoading;
+  const isError = activeQuery.isError || historicalQuery.isError;
+  const refetch = () => {
+    activeQuery.refetch();
+    historicalQuery.refetch();
+  };
+
+  const handleActivePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      prev.set("activePage", String(newPage));
+      return prev;
+    });
+  };
+
+  const handleHistoricalPageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      prev.set("historicalPage", String(newPage));
+      return prev;
+    });
+  };
+
+  const renderTable = (items: any[]) => {
     if (!items?.length) {
       return (
         <EmptyState
@@ -117,9 +146,18 @@ export function IncidentsPage() {
           >
             Active Incidents
           </Typography>
-          <Badge color="error">{active.length}</Badge>
+          <Badge color="error">{activePagination?.totalItems ?? activeIncidents.length}</Badge>
         </div>
-        {renderTable(active)}
+        {renderTable(activeIncidents)}
+        {activePagination && (
+          <Pagination
+            page={activePage}
+            totalPages={activePagination.totalPages}
+            onPageChange={handleActivePageChange}
+            hasNext={activePagination.hasNext}
+            hasPrevious={activePagination.hasPrevious}
+          />
+        )}
       </Card>
 
       <Card>
@@ -133,9 +171,18 @@ export function IncidentsPage() {
           >
             Historical Incidents
           </Typography>
-          <Badge color="secondary">{historical.length}</Badge>
+          <Badge color="secondary">{historicalPagination?.totalItems ?? historicalIncidents.length}</Badge>
         </div>
-        {renderTable(historical)}
+        {renderTable(historicalIncidents)}
+        {historicalPagination && (
+          <Pagination
+            page={historicalPage}
+            totalPages={historicalPagination.totalPages}
+            onPageChange={handleHistoricalPageChange}
+            hasNext={historicalPagination.hasNext}
+            hasPrevious={historicalPagination.hasPrevious}
+          />
+        )}
       </Card>
     </div>
   );

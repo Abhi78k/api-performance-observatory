@@ -12,4 +12,9 @@ type Endpoint struct {
 	UserID         uint
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+
+	// Calculated fields (ignored by GORM)
+	Status       string     `json:"status" gorm:"-"`
+	ResponseTime int64      `json:"response_time" gorm:"-"`
+	LastChecked  *time.Time `json:"last_checked" gorm:"-"`
 }

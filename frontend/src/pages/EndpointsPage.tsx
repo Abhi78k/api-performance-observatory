@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import {
   Badge,
@@ -13,6 +13,7 @@ import {
   Table,
   TableSkeleton,
   Typography,
+  Pagination,
 } from "@/components/ui";
 import {
   useCreateEndpoint,
@@ -31,25 +32,47 @@ const emptyForm: EndpointCreateUpdate = {
 
 export function EndpointsPage() {
   const navigate = useNavigate();
-  const { data, isLoading, isError, refetch } = useEndpoints();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = Number(searchParams.get("page") ?? "1");
+
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const { data: endpointsResult, isLoading, isError, refetch } = useEndpoints(page, 10, search, statusFilter);
+  const endpoints = endpointsResult?.data ?? [];
+  const pagination = endpointsResult?.pagination;
+
   const createMutation = useCreateEndpoint();
   const updateMutation = useUpdateEndpoint();
   const deleteMutation = useDeleteEndpoint();
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Endpoint | null>(null);
   const [form, setForm] = useState<EndpointCreateUpdate>(emptyForm);
   const [deleteConfirm, setDeleteConfirm] = useState<Endpoint | null>(null);
 
-  const filtered = (data ?? []).filter((ep) => {
-    const matchesSearch =
-      ep.name.toLowerCase().includes(search.toLowerCase()) ||
-      ep.url.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === "all" || ep.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setSearchParams((prev) => {
+      prev.set("page", "1");
+      return prev;
+    });
+  };
+
+  const handleStatusFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setStatusFilter(e.target.value);
+    setSearchParams((prev) => {
+      prev.set("page", "1");
+      return prev;
+    });
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setSearchParams((prev) => {
+      prev.set("page", String(newPage));
+      return prev;
+    });
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -118,7 +141,7 @@ export function EndpointsPage() {
               placeholder="    Search endpoints..."
               icon={<Search className="h-4 w-4" />}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
           <Select
@@ -128,14 +151,14 @@ export function EndpointsPage() {
               { value: "unhealthy", label: "Unhealthy" },
             ]}
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={handleStatusFilterChange}
             className="sm:w-48"
           />
         </div>
 
         {isLoading && <TableSkeleton />}
         {isError && <ErrorState onRetry={() => refetch()} />}
-        {!isLoading && !isError && filtered.length === 0 && (
+        {!isLoading && !isError && endpoints.length === 0 && (
           <EmptyState
             title="No endpoints found"
             description="Create your first endpoint to start monitoring."
@@ -147,77 +170,88 @@ export function EndpointsPage() {
             }
           />
         )}
-        {!isLoading && !isError && filtered.length > 0 && (
-          <Table
-            data={filtered}
-            keyExtractor={(row) => row.id}
-            onRowClick={(row) => navigate(`/endpoints/${row.id}`)}
-            columns={[
-              {
-                key: "name",
-                header: "Name",
-                render: (r) => <span className="font-medium">{r.name}</span>,
-              },
-              {
-                key: "url",
-                header: "URL",
-                render: (r) => (
-                  <span className="text-text truncate max-w-[200px] block">
-                    {r.url}
-                  </span>
-                ),
-              },
-              {
-                key: "status",
-                header: "Status",
-                render: (r) => (
-                  <Badge color={getStatusColor(r.status ?? "unknown")}>
-                    {r.status ?? "unknown"}
-                  </Badge>
-                ),
-              },
-              { key: "expected_status", header: "Expected Status" },
-              {
-                key: "last_checked",
-                header: "Last Checked",
-                render: (r) =>
-                  r.last_checked ? formatDate(r.last_checked) : "—",
-              },
-              {
-                key: "response_time",
-                header: "Response Time",
-                render: (r) =>
-                  r.response_time ? formatMs(r.response_time) : "—",
-              },
-              {
-                key: "actions",
-                header: "Actions",
-                render: (r) => (
-                  <div
-                    className="flex gap-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="text"
-                      iconOnly
-                      size="small"
-                      onClick={() => openEdit(r)}
+        {!isLoading && !isError && endpoints.length > 0 && (
+          <>
+            <Table
+              data={endpoints}
+              keyExtractor={(row) => row.id}
+              onRowClick={(row) => navigate(`/endpoints/${row.id}`)}
+              columns={[
+                {
+                  key: "name",
+                  header: "Name",
+                  render: (r) => <span className="font-medium">{r.name}</span>,
+                },
+                {
+                  key: "url",
+                  header: "URL",
+                  render: (r) => (
+                    <span className="text-text truncate max-w-[200px] block">
+                      {r.url}
+                    </span>
+                  ),
+                },
+                {
+                  key: "status",
+                  header: "Status",
+                  render: (r) => (
+                    <Badge color={getStatusColor(r.status ?? "unknown")}>
+                      {r.status ?? "unknown"}
+                    </Badge>
+                  ),
+                },
+                { key: "expected_status", header: "Expected Status" },
+                {
+                  key: "last_checked",
+                  header: "Last Checked",
+                  render: (r) =>
+                    r.last_checked ? formatDate(r.last_checked) : "—",
+                },
+                {
+                  key: "response_time",
+                  header: "Response Time",
+                  render: (r) =>
+                    r.response_time ? formatMs(r.response_time) : "—",
+                },
+                {
+                  key: "actions",
+                  header: "Actions",
+                  render: (r) => (
+                    <div
+                      className="flex gap-1"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="text"
-                      iconOnly
-                      size="small"
-                      onClick={() => setDeleteConfirm(r)}
-                    >
-                      <Trash2 className="h-4 w-4 text-error" />
-                    </Button>
-                  </div>
-                ),
-              },
-            ]}
-          />
+                      <Button
+                        variant="text"
+                        iconOnly
+                        size="small"
+                        onClick={() => openEdit(r)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="text"
+                        iconOnly
+                        size="small"
+                        onClick={() => setDeleteConfirm(r)}
+                      >
+                        <Trash2 className="h-4 w-4 text-error" />
+                      </Button>
+                    </div>
+                  ),
+                },
+              ]}
+            />
+            {pagination && (
+              <Pagination
+                page={page}
+                totalPages={pagination.totalPages}
+                onPageChange={handlePageChange}
+                hasNext={pagination.hasNext}
+                hasPrevious={pagination.hasPrevious}
+              />
+            )}
+          </>
         )}
       </Card>
 

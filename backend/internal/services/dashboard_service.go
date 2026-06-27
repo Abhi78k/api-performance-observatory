@@ -142,6 +142,61 @@ func (s *DashboardService) GetStatus(ctx context.Context) (
 	return result, nil
 }
 
+func (s *DashboardService) GetStatusPaginated(ctx context.Context, page, limit int) (
+	[]dto.DashboardStatusResponse,
+	int64,
+	error,
+) {
+	offset := (page - 1) * limit
+	endpoints, total, err := s.endpointRepo.GetAllEndpointsPaginated(ctx, offset, limit)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var result []dto.DashboardStatusResponse
+
+	for _, endpoint := range endpoints {
+
+		status := "unknown"
+		duration := 0.0
+
+		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(ctx, endpoint.ID)
+
+		if err == nil {
+			if latestCheck.Success {
+				status = "healthy"
+			} else {
+				status = "unhealthy"
+			}
+		}
+
+		monitoring, err :=
+			s.monitoringRepo.GetByEndpointID(
+				ctx,
+				endpoint.ID,
+			)
+
+		if err == nil {
+			duration =
+				time.Since(
+					monitoring.MonitoringStartedAt,
+				).Hours() / 24
+		}
+
+		result = append(
+			result,
+			dto.DashboardStatusResponse{
+				EndpointID:             endpoint.ID,
+				EndpointName:           endpoint.Name,
+				Status:                 status,
+				MonitoringDurationDays: duration,
+			},
+		)
+	}
+	return result, total, nil
+}
+
 func (s *DashboardService) GetRecentIncidents(ctx context.Context) (
 	[]models.Incident,
 	error,

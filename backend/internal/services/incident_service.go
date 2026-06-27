@@ -99,6 +99,23 @@ func (s *IncidentService) GetAllIncidents(ctx context.Context) (
 	return incidents, err
 }
 
+func (s *IncidentService) GetIncidentsPaginated(
+	ctx context.Context,
+	isResolvedStr string,
+	page, limit int,
+) ([]models.Incident, int64, error) {
+	offset := (page - 1) * limit
+	return s.incidentRepo.GetIncidentsPaginated(ctx, isResolvedStr, offset, limit)
+}
+
+func (s *IncidentService) GetActiveIncidentsPaginated(
+	ctx context.Context,
+	page, limit int,
+) ([]models.Incident, int64, error) {
+	offset := (page - 1) * limit
+	return s.incidentRepo.GetIncidentsPaginated(ctx, "false", offset, limit)
+}
+
 func (s *IncidentService) GetIncidentByID(ctx context.Context, id uint) (
 	*models.Incident,
 	error,

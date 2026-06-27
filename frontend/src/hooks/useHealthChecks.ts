@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import * as healthchecksApi from '@/api/healthchecks'
 import { mockHealthChecks } from '@/mocks/data'
 
@@ -13,10 +13,29 @@ async function withMockFallback<T>(fn: () => Promise<T>, mock: T): Promise<T> {
   }
 }
 
-export function useHealthChecks() {
+export function useHealthChecks(page?: number, limit?: number, endpointId?: string | number, success?: string) {
   return useQuery({
-    queryKey: ['healthchecks'],
-    queryFn: () => withMockFallback(healthchecksApi.list, mockHealthChecks),
+    queryKey: ['healthchecks', page, limit, endpointId, success],
+    queryFn: () =>
+      withMockFallback(
+        () => healthchecksApi.list(page, limit, endpointId, success),
+        {
+          data: mockHealthChecks.filter((h) => {
+            const matchesSuccess = !success || success === 'all' || (success === 'success' && h.success) || (success === 'failed' && !h.success)
+            const matchesEndpoint = !endpointId || endpointId === 'all' || String(h.endpoint_id) === String(endpointId)
+            return matchesSuccess && matchesEndpoint
+          }).slice(((page ?? 1) - 1) * (limit ?? 10), (page ?? 1) * (limit ?? 10)),
+          pagination: {
+            page: page ?? 1,
+            limit: limit ?? 10,
+            totalItems: mockHealthChecks.length,
+            totalPages: Math.ceil(mockHealthChecks.length / (limit ?? 10)),
+            hasNext: (page ?? 1) * (limit ?? 10) < mockHealthChecks.length,
+            hasPrevious: (page ?? 1) > 1,
+          }
+        }
+      ),
+    placeholderData: keepPreviousData,
   })
 }
 

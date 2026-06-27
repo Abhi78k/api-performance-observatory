@@ -12,6 +12,7 @@ import {
 import { useAuthStore } from "@/store/authStore";
 import { Typography } from "@/components/ui";
 import { cn } from "@/utils/cn";
+import { logout as apiLogout } from "@/api/auth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -24,9 +25,15 @@ export function TopNav() {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await apiLogout();
+    } catch (err) {
+      console.error("Logout from server failed:", err);
+    } finally {
+      logout();
+      navigate("/login");
+    }
   };
 
   return (

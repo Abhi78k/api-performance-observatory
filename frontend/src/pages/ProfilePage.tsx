@@ -1,17 +1,17 @@
 import { useEffect } from "react";
-import { User, Mail, Shield } from "lucide-react";
+import { User, Mail } from "lucide-react";
 import { Card, CardSkeleton, ErrorState, Typography } from "@/components/ui";
 import { me } from "@/api/auth";
 import { useAuthStore } from "@/store/authStore";
 import { useQuery } from "@tanstack/react-query";
 
 export function ProfilePage() {
-  const { user, setUser, token } = useAuthStore();
+  const { user, setUser, isAuthenticated } = useAuthStore();
 
   const profile = useQuery({
     queryKey: ["auth", "me"],
     queryFn: me,
-    enabled: !!token,
+    enabled: isAuthenticated,
     retry: false,
   });
 

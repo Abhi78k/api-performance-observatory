@@ -21,10 +21,23 @@ export function normalizeEndpoint(raw: any): Endpoint {
   }
 }
 
-export async function list(): Promise<Endpoint[]> {
-  const { data } = await apiClient.get<ApiResponse<any[]>>('/endpoints')
+export async function list(page?: number, limit?: number, search?: string, status?: string): Promise<{ data: Endpoint[]; pagination: any }> {
+  let url = '/endpoints'
+  const params = new URLSearchParams()
+  if (page) params.set('page', String(page))
+  if (limit) params.set('limit', String(limit))
+  if (search) params.set('search', search)
+  if (status) params.set('status', status)
+
+  const queryStr = params.toString()
+  if (queryStr) url += `?${queryStr}`
+
+  const { data } = await apiClient.get<ApiResponse<any[]>>(url)
   if (!data.success || !data.data) throw new Error('Failed to fetch endpoints')
-  return data.data.map(normalizeEndpoint)
+  return {
+    data: data.data.map(normalizeEndpoint),
+    pagination: (data as any).pagination,
+  }
 }
 
 export async function get(id: string | number): Promise<Endpoint> {

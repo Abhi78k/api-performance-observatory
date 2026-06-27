@@ -204,6 +204,16 @@ func (s *HealthCheckService) GetAll(ctx context.Context) ([]models.HealthCheck, 
 	return checks, err
 }
 
+func (s *HealthCheckService) GetAllPaginated(
+	ctx context.Context,
+	page, limit int,
+	endpointID uint,
+	success string,
+) ([]models.HealthCheck, int64, error) {
+	offset := (page - 1) * limit
+	return s.HealthCheckRepo.GetAllPaginated(ctx, offset, limit, endpointID, success)
+}
+
 func (s *HealthCheckService) GetLatestByEndpointID(
 	ctx context.Context,
 	endpointID uint,

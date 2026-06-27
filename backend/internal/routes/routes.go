@@ -65,6 +65,11 @@ func SetupRouter(
 			"/login",
 			authHandler.Login,
 		)
+
+		auth.POST(
+			"/logout",
+			authHandler.Logout,
+		)
 	}
 
 	stats := router.Group("/endpoints")

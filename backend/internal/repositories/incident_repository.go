@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"errors"
 	"strconv"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/models"
@@ -67,21 +66,20 @@ func (r *IncidentRepository) GetActiveIncidentByEndpointID(
 
 	var incident models.Incident
 
-	err := r.db.WithContext(ctx).
+	result := r.db.WithContext(ctx).
 		Where(
 			"endpoint_id = ? AND is_resolved = ?",
 			endpointID,
 			false,
 		).
-		First(&incident).
-		Error
+		First(&incident)
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+	if result.Error != nil {
+		return nil, result.Error
 	}
 
-	if err != nil {
-		return nil, err
+	if result.RowsAffected == 0 {
+		return nil, nil
 	}
 
 	return &incident, nil

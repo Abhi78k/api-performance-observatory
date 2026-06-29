@@ -139,7 +139,9 @@ export function IncidentTimeline({
         <div className="space-y-3">
           {incidents.map((inc, idx) => {
             const name =
-              "endpoint_name" in inc && inc.endpoint_name && inc.endpoint_name.trim() !== ""
+              "endpoint_name" in inc &&
+              inc.endpoint_name &&
+              inc.endpoint_name.trim() !== ""
                 ? inc.endpoint_name
                 : (endpointNames[inc.endpoint_id] ??
                   `Endpoint #${inc.endpoint_id}`);
@@ -209,7 +211,9 @@ export function HealthCheckList({
           >
             <div>
               <Typography variant="button" color="white" className="pr-2">
-                {check.endpoint_name && check.endpoint_name.trim() !== "" ? check.endpoint_name : `Endpoint #${check.endpoint_id}`}
+                {check.endpoint_name && check.endpoint_name.trim() !== ""
+                  ? check.endpoint_name
+                  : `Endpoint #${check.endpoint_id}`}
               </Typography>
               <Typography variant="caption" color="text">
                 {formatDate(check.checked_at)}
@@ -220,7 +224,7 @@ export function HealthCheckList({
                 {check.response_time}ms
               </Typography>
               <Badge color={check.success ? "success" : "error"}>
-                {check.status_code}
+                {check.status_code == 0 ? 404 : check.status_code}
               </Badge>
             </div>
           </div>

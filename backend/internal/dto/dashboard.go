@@ -10,10 +10,10 @@ type DashboardStatusResponse struct {
 }
 
 type DashboardMonitoringResponse struct {
-	EndpointID             uint      `json:"endpoint_id"`
-	EndpointName           string    `json:"endpoint_name"`
-	MonitoringStartedAt    time.Time `json:"monitoring_started_at"`
-	MonitoringDurationDays float64   `json:"monitoring_duration_days"`
+	EndpointID             uint       `json:"endpoint_id"`
+	EndpointName           string     `json:"endpoint_name"`
+	MonitoringStartedAt    *time.Time `json:"monitoring_started_at"`
+	MonitoringDurationDays float64    `json:"monitoring_duration_days"`
 }
 
 type DashboardOverviewResponse struct {

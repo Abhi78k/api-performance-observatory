@@ -46,7 +46,6 @@ func (s *DashboardService) GetOverview(ctx context.Context) (
 
 	healthyCount := 0
 	unhealthyCount := 0
-	duration := 0.0
 
 	for _, endpoint := range endpoints {
 		latestCheck, err := s.healthCheckRepo.GetLatestByEndpointID(ctx, endpoint.ID)
@@ -67,14 +66,7 @@ func (s *DashboardService) GetOverview(ctx context.Context) (
 				endpoint.ID,
 			)
 
-		if err == nil {
-			duration =
-				time.Since(
-					monitoring.MonitoringStartedAt,
-				).Hours() / 24
-		}
-
-		if duration != 0.0 {
+		if err == nil && monitoring != nil && !monitoring.MonitoringStartedAt.IsZero() {
 			monitoredEndpoints++
 		}
 	}
@@ -121,11 +113,11 @@ func (s *DashboardService) GetStatus(ctx context.Context) (
 				endpoint.ID,
 			)
 
-		if err == nil {
-			duration =
-				time.Since(
-					monitoring.MonitoringStartedAt,
-				).Hours() / 24
+		if err == nil && monitoring != nil && !monitoring.MonitoringStartedAt.IsZero() {
+			d := time.Since(monitoring.MonitoringStartedAt).Hours() / 24.0
+			if d > 0 {
+				duration = d
+			}
 		}
 
 		result = append(
@@ -176,11 +168,11 @@ func (s *DashboardService) GetStatusPaginated(ctx context.Context, page, limit i
 				endpoint.ID,
 			)
 
-		if err == nil {
-			duration =
-				time.Since(
-					monitoring.MonitoringStartedAt,
-				).Hours() / 24
+		if err == nil && monitoring != nil && !monitoring.MonitoringStartedAt.IsZero() {
+			d := time.Since(monitoring.MonitoringStartedAt).Hours() / 24.0
+			if d > 0 {
+				duration = d
+			}
 		}
 
 		result = append(
@@ -317,15 +309,23 @@ func (s *DashboardService) GetMonitoring(ctx context.Context) (
 			continue
 		}
 
+		var startedAt *time.Time
+		duration := 0.0
+		if !monitoring.MonitoringStartedAt.IsZero() {
+			startedAt = &monitoring.MonitoringStartedAt
+			d := time.Since(monitoring.MonitoringStartedAt).Hours() / 24.0
+			if d > 0 {
+				duration = d
+			}
+		}
+
 		result = append(
 			result,
 			dto.DashboardMonitoringResponse{
-				EndpointID:          endpoint.ID,
-				EndpointName:        endpoint.Name,
-				MonitoringStartedAt: monitoring.MonitoringStartedAt,
-				MonitoringDurationDays: time.Since(
-					monitoring.MonitoringStartedAt,
-				).Hours() / 24,
+				EndpointID:             endpoint.ID,
+				EndpointName:           endpoint.Name,
+				MonitoringStartedAt:    startedAt,
+				MonitoringDurationDays: duration,
 			},
 		)
 	}

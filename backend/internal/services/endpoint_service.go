@@ -95,7 +95,9 @@ func (s *EndpointService) GetEndpointsPaginated(
 				endpoints[i].Status = "unhealthy"
 			}
 			endpoints[i].ResponseTime = latestCheck.ResponseTime
-			endpoints[i].LastChecked = &latestCheck.CheckedAt
+			if !latestCheck.CheckedAt.IsZero() {
+				endpoints[i].LastChecked = &latestCheck.CheckedAt
+			}
 		} else {
 			endpoints[i].Status = "unknown"
 		}

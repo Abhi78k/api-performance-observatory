@@ -14,22 +14,49 @@ type IncidentStatsResponse struct {
 }
 
 type IncidentResponse struct {
-	ID           uint       `json:"id"`
-	EndpointID   uint       `json:"endpoint_id"`
-	EndpointName string     `json:"endpoint_name"`
-	StartedAt    time.Time  `json:"started_at"`
-	ResolvedAt   *time.Time `json:"resolved_at,omitempty"`
-	IsResolved   bool       `json:"is_resolved"`
+	ID              uint       `json:"id"`
+	EndpointID      uint       `json:"endpoint_id"`
+	EndpointName    string     `json:"endpoint_name"`
+	StartedAt       *time.Time `json:"started_at"`
+	ResolvedAt      *time.Time `json:"resolved_at"`
+	IsResolved      bool       `json:"is_resolved"`
+	DurationMinutes float64    `json:"duration_minutes"`
 }
 
 func ToIncidentResponse(i models.Incident, endpointName string) IncidentResponse {
+	var startedAt *time.Time
+	if !i.StartedAt.IsZero() {
+		startedAt = &i.StartedAt
+	}
+
+	var resolvedAt *time.Time
+	if i.ResolvedAt != nil && !i.ResolvedAt.IsZero() {
+		resolvedAt = i.ResolvedAt
+	}
+
+	var durationMinutes float64
+	if !i.StartedAt.IsZero() {
+		if i.ResolvedAt != nil && !i.ResolvedAt.IsZero() {
+			d := i.ResolvedAt.Sub(i.StartedAt).Minutes()
+			if d > 0 {
+				durationMinutes = d
+			}
+		} else {
+			d := time.Since(i.StartedAt).Minutes()
+			if d > 0 {
+				durationMinutes = d
+			}
+		}
+	}
+
 	return IncidentResponse{
-		ID:           i.ID,
-		EndpointID:   i.EndpointID,
-		EndpointName: endpointName,
-		StartedAt:    i.StartedAt,
-		ResolvedAt:   i.ResolvedAt,
-		IsResolved:   i.IsResolved,
+		ID:              i.ID,
+		EndpointID:      i.EndpointID,
+		EndpointName:    endpointName,
+		StartedAt:       startedAt,
+		ResolvedAt:      resolvedAt,
+		IsResolved:      i.IsResolved,
+		DurationMinutes: durationMinutes,
 	}
 }
 

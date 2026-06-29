@@ -27,7 +27,7 @@ func NewSchedulerService(
 
 func ShouldCheck(ctx context.Context, endpoint models.Endpoint) bool {
 
-	if endpoint.LastCheckedAt == nil {
+	if endpoint.LastCheckedAt == nil || endpoint.LastCheckedAt.IsZero() {
 		return true
 	}
 

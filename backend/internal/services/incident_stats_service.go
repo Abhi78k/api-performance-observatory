@@ -18,58 +18,58 @@ func (s *IncidentStatsService) CalculateStats(
 	incidents []models.Incident,
 ) dto.IncidentStatsResponse {
 
-	totalIncidents := len(incidents)
-
+	validIncidents := 0
 	var totalDowntimeMinutes float64
 	var monitoringStart time.Time
 
-	for i, incident := range incidents {
+	for _, incident := range incidents {
+		if incident.StartedAt.IsZero() {
+			continue
+		}
+		validIncidents++
 
-		if i == 0 {
+		if monitoringStart.IsZero() || incident.StartedAt.Before(monitoringStart) {
 			monitoringStart = incident.StartedAt
 		}
 
-		if incident.StartedAt.Before(monitoringStart) {
-			monitoringStart = incident.StartedAt
+		var duration time.Duration
+		if incident.ResolvedAt != nil && !incident.ResolvedAt.IsZero() {
+			duration = incident.ResolvedAt.Sub(incident.StartedAt)
+		} else {
+			duration = time.Since(incident.StartedAt)
 		}
 
-		if incident.ResolvedAt != nil {
-
-			duration := incident.ResolvedAt.Sub(
-				incident.StartedAt,
-			)
-
-			totalDowntimeMinutes += duration.Minutes()
+		if duration < 0 {
+			duration = 0
 		}
+
+		totalDowntimeMinutes += duration.Minutes()
 	}
 
+	totalIncidents := len(incidents)
 	averageIncidentMinutes := 0.0
 
 	if totalIncidents > 0 {
-		averageIncidentMinutes =
-			totalDowntimeMinutes /
-				float64(totalIncidents)
+		averageIncidentMinutes = totalDowntimeMinutes / float64(totalIncidents)
 	}
 
 	uptimePercentage := 100.0
 
-	if totalIncidents > 0 {
+	var monitoringMinutes float64
+	if !monitoringStart.IsZero() {
+		monitoringMinutes = time.Since(monitoringStart).Minutes()
+	}
 
-		monitoringMinutes := time.Since(monitoringStart).Minutes()
+	standardBaseline := 43200.0 // Standard monthly SLA baseline (30 days)
+	if monitoringMinutes < standardBaseline {
+		monitoringMinutes = standardBaseline
+	}
+	if monitoringMinutes <= totalDowntimeMinutes {
+		monitoringMinutes = totalDowntimeMinutes + 100.0
+	}
 
-		// Standard monthly SLA baseline is 30 days = 43,200 minutes.
-		// Ensure monitoring window is at least 43,200 minutes (or totalDowntime + 100) to reflect realistic SLA percentages.
-		standardBaseline := 43200.0
-		if monitoringMinutes < standardBaseline {
-			monitoringMinutes = standardBaseline
-		}
-		if monitoringMinutes <= totalDowntimeMinutes {
-			monitoringMinutes = totalDowntimeMinutes + 100.0
-		}
-
-		uptimePercentage =
-			((monitoringMinutes - totalDowntimeMinutes) /
-				monitoringMinutes) * 100
+	if monitoringMinutes > 0 {
+		uptimePercentage = ((monitoringMinutes - totalDowntimeMinutes) / monitoringMinutes) * 100.0
 	}
 
 	if uptimePercentage < 0.0 {

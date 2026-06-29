@@ -74,8 +74,6 @@ func (s *MonitoringService) GetMonitoringResponse(
 		return nil, err
 	}
 
-	return &dto.MonitoringResponse{
-		EndpointID:          record.EndpointID,
-		MonitoringStartedAt: record.MonitoringStartedAt,
-	}, nil
+	resp := dto.ToMonitoringResponse(*record)
+	return &resp, nil
 }

@@ -7,13 +7,13 @@ import (
 )
 
 type HealthCheckResponse struct {
-	ID           uint      `json:"id"`
-	Name         string    `json:"endpoint_name"`
-	EndpointID   uint      `json:"endpoint_id"`
-	StatusCode   int       `json:"status_code"`
-	ResponseTime int64     `json:"response_time"`
-	Success      bool      `json:"success"`
-	CheckedAt    time.Time `json:"checked_at"`
+	ID           uint       `json:"id"`
+	Name         string     `json:"endpoint_name"`
+	EndpointID   uint       `json:"endpoint_id"`
+	StatusCode   int        `json:"status_code"`
+	ResponseTime int64      `json:"response_time"`
+	Success      bool       `json:"success"`
+	CheckedAt    *time.Time `json:"checked_at"`
 }
 
 type HealthCheckSuccessResponse struct {
@@ -27,6 +27,11 @@ type HealthCheckListResponse struct {
 }
 
 func ToHealthCheckResponse(h models.HealthCheck, endpointName string) HealthCheckResponse {
+	var checkedAt *time.Time
+	if !h.CheckedAt.IsZero() {
+		checkedAt = &h.CheckedAt
+	}
+
 	return HealthCheckResponse{
 		ID:           h.ID,
 		Name:         endpointName,
@@ -34,7 +39,7 @@ func ToHealthCheckResponse(h models.HealthCheck, endpointName string) HealthChec
 		StatusCode:   h.StatusCode,
 		ResponseTime: h.ResponseTime,
 		Success:      h.Success,
-		CheckedAt:    h.CheckedAt,
+		CheckedAt:    checkedAt,
 	}
 }
 

@@ -31,6 +31,7 @@ func (s *IncidentService) StartIncident(
 
 	incident := &models.Incident{
 		EndpointID: endpointID,
+		StartedAt:  time.Now(),
 		IsResolved: false,
 	}
 
@@ -70,6 +71,10 @@ func (s *IncidentService) ResolveIncident(
 ) error {
 
 	now := time.Now()
+
+	if incident.StartedAt.IsZero() {
+		incident.StartedAt = now
+	}
 
 	incident.ResolvedAt = &now
 	incident.IsResolved = true

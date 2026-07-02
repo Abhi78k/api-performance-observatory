@@ -23,7 +23,6 @@ import (
 // @version 1.0
 // @description Backend API for monitoring HTTP endpoints.
 
-// @host localhost:8080
 // @BasePath /
 
 // @securityDefinitions.apikey BearerAuth

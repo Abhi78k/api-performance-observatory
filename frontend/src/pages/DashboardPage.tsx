@@ -211,7 +211,7 @@ export function DashboardPage() {
         </div>
 
         <div className="lg:col-span-6">
-          <Card className="relative h-[420px] overflow-hidden !p-0 mb-4.5">
+          <Card className="relative h-[438px] overflow-hidden !p-0 mb-[16px]">
             <div className="absolute inset-x-0 top-4 z-10 text-center">
               <Typography
                 variant="subtitle1"
@@ -219,7 +219,7 @@ export function DashboardPage() {
                 fontWeight="bold"
                 className="flex items-center justify-center gap-2"
               >
-                <Globe className="h-4 w-4 text-info" />
+                <Globe className="h-5 w-5 text-info" />
                 Global Monitoring Network
               </Typography>
               <Typography variant="caption" color="text">

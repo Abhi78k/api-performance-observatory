@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/Abhi78k/api-performance-observatory/backend/internal/config"
@@ -27,7 +28,7 @@ func SetupRouter(
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:5173",
+			cfg.FrontendURL,
 		},
 
 		AllowMethods: []string{
@@ -83,6 +84,12 @@ func SetupRouter(
 			statsHandler.GetEndpointStats,
 		)
 	}
+
+	router.GET("/health", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	})
 
 	protected := router.Group("/")
 	protected.Use(

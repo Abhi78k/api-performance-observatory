@@ -95,10 +95,18 @@ func main() {
 
 	router := routes.SetupRouter(cfg, authHandler, endpointHandler, statsHandler, healthCheckHandler, incidentHandler, monitoringHandler, dashboardHandler)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	server := &http.Server{
-		Addr:    ":8080",
+		Addr:    ":" + port,
 		Handler: router,
 	}
+
+	logger.Info("Server started on :" + port)
+
 	go func() {
 
 		logger.Info("Server started on :8080")

@@ -101,13 +101,13 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	secure := false
-	if c.Request.TLS != nil || gin.Mode() == gin.ReleaseMode || os.Getenv("ENV") == "production" || os.Getenv("APP_ENV") == "production" {
-		secure = true
-	}
+	// secure := false
+	// if c.Request.TLS != nil || gin.Mode() == gin.ReleaseMode || os.Getenv("ENV") == "production" || os.Getenv("APP_ENV") == "production" {
+	// 	secure = true
+	// }
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("access_token", accessToken, 86400, "/", "", secure, true)
+	c.SetSameSite(http.SameSiteNoneMode)
+	c.SetCookie("access_token", accessToken, 86400, "/", "", true, true)
 
 	utils.Message(c, http.StatusOK, "Login successful")
 }

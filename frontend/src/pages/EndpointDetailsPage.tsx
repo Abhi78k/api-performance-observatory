@@ -1,5 +1,5 @@
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Clock, Globe, Shield } from 'lucide-react'
+import { useParams, Link } from "react-router-dom";
+import { ArrowLeft, Clock, Globe, Shield } from "lucide-react";
 import {
   Badge,
   Button,
@@ -9,73 +9,89 @@ import {
   MiniStatisticsCard,
   Table,
   Typography,
-} from '@/components/ui'
-import { ChartCard } from '@/features/dashboard/ChartCard'
-import { HealthCheckList, IncidentTimeline } from '@/features/dashboard/DashboardWidgets'
+} from "@/components/ui";
+import { ChartCard } from "@/features/dashboard/ChartCard";
+import {
+  HealthCheckList,
+  IncidentTimeline,
+} from "@/features/dashboard/DashboardWidgets";
 import {
   useEndpoint,
   useEndpointMonitoring,
   useEndpointStats,
-} from '@/hooks/useEndpoints'
-import { useEndpointHealthChecks } from '@/hooks/useHealthChecks'
-import { useIncidents } from '@/hooks/useIncidents'
-import { mockResponseTimeChart } from '@/mocks/data'
-import { formatDate, formatMs, formatPercent, getStatusColor } from '@/utils/format'
+} from "@/hooks/useEndpoints";
+import { useEndpointHealthChecks } from "@/hooks/useHealthChecks";
+import { useIncidents } from "@/hooks/useIncidents";
+import { mockResponseTimeChart } from "@/mocks/data";
+import {
+  formatDate,
+  formatMs,
+  formatPercent,
+  getStatusColor,
+} from "@/utils/format";
 
 export function EndpointDetailsPage() {
-  const { id } = useParams<{ id: string }>()
-  const endpoint = useEndpoint(id)
-  const stats = useEndpointStats(id)
-  const monitoring = useEndpointMonitoring(id)
-  const healthChecks = useEndpointHealthChecks(id)
-  const incidentsQuery = useIncidents(1, 100)
+  const { id } = useParams<{ id: string }>();
+  const endpoint = useEndpoint(id);
+  const stats = useEndpointStats(id);
+  const monitoring = useEndpointMonitoring(id);
+  const healthChecks = useEndpointHealthChecks(id);
+  const incidentsQuery = useIncidents(1, 100);
 
-  const incidents = incidentsQuery.data?.data ?? []
+  const incidents = incidentsQuery.data?.data ?? [];
   const endpointIncidents = incidents.filter(
     (i) => String(i.endpoint_id) === String(id),
-  )
+  );
 
   const chartData = (() => {
-    const checks = healthChecks.data ?? []
-    if (checks.length === 0) return mockResponseTimeChart
+    const checks = healthChecks.data ?? [];
+    if (checks.length === 0) return mockResponseTimeChart;
 
-    const now = new Date()
+    const now = new Date();
     const intervals = Array.from({ length: 7 }).map((_, i) => {
-      const time = new Date(now.getTime() - (6 - i) * 4 * 60 * 60 * 1000)
-      const label = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      return { time: label, msSum: 0, count: 0, date: time }
-    })
+      const time = new Date(now.getTime() - (6 - i) * 4 * 60 * 60 * 1000);
+      const label = time.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return { time: label, msSum: 0, count: 0, date: time };
+    });
 
     for (const check of checks) {
-      const checkTime = new Date(check.checked_at).getTime()
-      let closestIdx = 0
-      let minDiff = Infinity
+      const checkTime = new Date(check.checked_at).getTime();
+      let closestIdx = 0;
+      let minDiff = Infinity;
       intervals.forEach((interval, idx) => {
-        const diff = Math.abs(interval.date.getTime() - checkTime)
+        const diff = Math.abs(interval.date.getTime() - checkTime);
         if (diff < minDiff) {
-          minDiff = diff
-          closestIdx = idx
+          minDiff = diff;
+          closestIdx = idx;
         }
-      })
+      });
 
       if (minDiff < 4 * 60 * 60 * 1000) {
-        intervals[closestIdx].msSum += check.response_time
-        intervals[closestIdx].count++
+        intervals[closestIdx].msSum += check.response_time;
+        intervals[closestIdx].count++;
       }
     }
 
     return intervals.map((interval, i) => ({
-      time: i === 6 ? 'Now' : interval.time,
+      time: i === 6 ? "Now" : interval.time,
       ms: interval.count > 0 ? Math.round(interval.msSum / interval.count) : 0,
-    }))
-  })()
+    }));
+  })();
 
-  if (endpoint.isLoading) return <CardSkeleton />
+  if (endpoint.isLoading) return <CardSkeleton />;
   if (endpoint.isError || !endpoint.data) {
-    return <ErrorState onRetry={() => endpoint.refetch()} message="Failed to load endpoint details." />
+    return (
+      <ErrorState
+        onRetry={() => endpoint.refetch()}
+        message="Failed to load endpoint details."
+      />
+    );
   }
 
-  const ep = endpoint.data
+  const ep = endpoint.data;
 
   return (
     <div className="space-y-6">
@@ -90,7 +106,9 @@ export function EndpointDetailsPage() {
             <Typography variant="h5" color="white" fontWeight="bold">
               {ep.name}
             </Typography>
-            <Badge color={getStatusColor(ep.status ?? 'unknown')}>{ep.status ?? 'unknown'}</Badge>
+            <Badge color={getStatusColor(ep.status ?? "unknown")}>
+              {ep.status ?? "unknown"}
+            </Badge>
           </div>
           <Typography variant="body2" color="text" className="mt-1 break-all">
             {ep.url}
@@ -101,54 +119,71 @@ export function EndpointDetailsPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MiniStatisticsCard
           title="Avg Response Time"
-          value={stats.data ? formatMs(stats.data.average_response_time) : '—'}
+          value={stats.data ? formatMs(stats.data.average_response_time) : "—"}
           icon={Clock}
         />
         <MiniStatisticsCard
           title="Success Rate"
-          value={stats.data ? formatPercent(stats.data.success_rate) : '—'}
+          value={stats.data ? formatPercent(stats.data.success_rate) : "—"}
           icon={Shield}
-          iconColor="#01B574"
         />
         <MiniStatisticsCard
           title="Uptime"
-          value={stats.data ? formatPercent(stats.data.uptime_percentage) : '—'}
+          value={stats.data ? formatPercent(stats.data.uptime_percentage) : "—"}
           icon={Globe}
         />
         <MiniStatisticsCard
           title="Total Checks"
-          value={stats.data?.total_checks.toLocaleString() ?? '—'}
+          value={stats.data?.total_checks.toLocaleString() ?? "—"}
           icon={Clock}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
-          <Typography variant="lg" color="white" fontWeight="bold" className="mb-4">
+          <Typography
+            variant="lg"
+            color="white"
+            fontWeight="bold"
+            className="mb-4"
+          >
             Overview
           </Typography>
           <dl className="space-y-3">
             <div className="flex justify-between">
-              <Typography variant="caption" color="text">Expected Status</Typography>
-              <Typography variant="button" color="white">{ep.expected_status}</Typography>
-            </div>
-            <div className="flex justify-between">
-              <Typography variant="caption" color="text">Last Checked</Typography>
+              <Typography variant="caption" color="text">
+                Expected Status
+              </Typography>
               <Typography variant="button" color="white">
-                {ep.last_checked ? formatDate(ep.last_checked) : '—'}
+                {ep.expected_status}
               </Typography>
             </div>
             <div className="flex justify-between">
-              <Typography variant="caption" color="text">Response Time</Typography>
+              <Typography variant="caption" color="text">
+                Last Checked
+              </Typography>
               <Typography variant="button" color="white">
-                {ep.response_time ? formatMs(ep.response_time) : '—'}
+                {ep.last_checked ? formatDate(ep.last_checked) : "—"}
+              </Typography>
+            </div>
+            <div className="flex justify-between">
+              <Typography variant="caption" color="text">
+                Response Time
+              </Typography>
+              <Typography variant="button" color="white">
+                {ep.response_time ? formatMs(ep.response_time) : "—"}
               </Typography>
             </div>
           </dl>
         </Card>
 
         <Card>
-          <Typography variant="lg" color="white" fontWeight="bold" className="mb-4">
+          <Typography
+            variant="lg"
+            color="white"
+            fontWeight="bold"
+            className="mb-4"
+          >
             Monitoring Information
           </Typography>
           {monitoring.isLoading ? (
@@ -156,26 +191,34 @@ export function EndpointDetailsPage() {
           ) : monitoring.data ? (
             <dl className="space-y-3">
               <div className="flex justify-between">
-                <Typography variant="caption" color="text">Started At</Typography>
+                <Typography variant="caption" color="text">
+                  Started At
+                </Typography>
                 <Typography variant="button" color="white">
                   {formatDate(monitoring.data.monitoring_started_at)}
                 </Typography>
               </div>
               <div className="flex justify-between">
-                <Typography variant="caption" color="text">Duration</Typography>
+                <Typography variant="caption" color="text">
+                  Duration
+                </Typography>
                 <Typography variant="button" color="white">
                   {monitoring.data.monitoring_duration_days} days
                 </Typography>
               </div>
               <div className="flex justify-between">
-                <Typography variant="caption" color="text">Check Interval</Typography>
+                <Typography variant="caption" color="text">
+                  Check Interval
+                </Typography>
                 <Typography variant="button" color="white">
                   {monitoring.data.check_interval_seconds}s
                 </Typography>
               </div>
             </dl>
           ) : (
-            <Typography variant="body2" color="text">No monitoring data available</Typography>
+            <Typography variant="body2" color="text">
+              No monitoring data available
+            </Typography>
           )}
         </Card>
       </div>
@@ -207,25 +250,49 @@ export function EndpointDetailsPage() {
 
       {stats.data && (
         <Card>
-          <Typography variant="lg" color="white" fontWeight="bold" className="mb-4">
+          <Typography
+            variant="lg"
+            color="white"
+            fontWeight="bold"
+            className="mb-4"
+          >
             Performance Statistics
           </Typography>
           <Table
             data={[
-              { metric: 'Min Response Time', value: formatMs(stats.data.min_response_time) },
-              { metric: 'Max Response Time', value: formatMs(stats.data.max_response_time) },
-              { metric: 'Average Response Time', value: formatMs(stats.data.average_response_time) },
-              { metric: 'Success Rate', value: formatPercent(stats.data.success_rate) },
-              { metric: 'Uptime', value: formatPercent(stats.data.uptime_percentage) },
+              {
+                metric: "Min Response Time",
+                value: formatMs(stats.data.min_response_time),
+              },
+              {
+                metric: "Max Response Time",
+                value: formatMs(stats.data.max_response_time),
+              },
+              {
+                metric: "Average Response Time",
+                value: formatMs(stats.data.average_response_time),
+              },
+              {
+                metric: "Success Rate",
+                value: formatPercent(stats.data.success_rate),
+              },
+              {
+                metric: "Uptime",
+                value: formatPercent(stats.data.uptime_percentage),
+              },
             ]}
             keyExtractor={(r) => r.metric}
             columns={[
-              { key: 'metric', header: 'Metric' },
-              { key: 'value', header: 'Value', render: (r) => <span className="font-medium">{r.value}</span> },
+              { key: "metric", header: "Metric" },
+              {
+                key: "value",
+                header: "Value",
+                render: (r) => <span className="font-medium">{r.value}</span>,
+              },
             ]}
           />
         </Card>
       )}
     </div>
-  )
+  );
 }

@@ -132,14 +132,12 @@ export function DashboardPage() {
           subtitle={`${formatPercent((data.healthy_count / data.total_endpoints) * 100)}`}
           subtitleColor="success"
           icon={CheckCircle2}
-          iconColor="#01B574"
         />
         <MiniStatisticsCard
           title="Unhealthy"
           value={data.unhealthy_count}
           subtitleColor="error"
           icon={XCircle}
-          iconColor="#E31A1A"
         />
         <MiniStatisticsCard
           title="Overall Uptime"
@@ -191,7 +189,6 @@ export function DashboardPage() {
             value={activeIncidents.data?.data?.length ?? 0}
             subtitleColor="error"
             icon={AlertTriangle}
-            iconColor="#E31A1A"
           />
           <MiniStatisticsCard
             title="Total Endpoints"
@@ -206,7 +203,6 @@ export function DashboardPage() {
                 : "—"
             }
             icon={GlobeOff}
-            iconColor="#01B574"
           />
         </div>
 
@@ -241,7 +237,6 @@ export function DashboardPage() {
                 }
                 subtitleColor="error"
                 icon={GlobeX}
-                iconColor="#E31A1A"
               />
               <MiniStatisticsCard
                 title="Avg Incident Duration"
